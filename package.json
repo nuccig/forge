@@ -1,5 +1,5 @@
 {
-  "name": "create-forge",
+  "name": "@nuccig/create-forge",
   "version": "0.1.0",
   "description": "Scaffold a portable, tool-agnostic AI-agent harness (AGENTS.md + Spec-Driven Development).",
   "type": "module",
@@ -11,6 +11,18 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "author": "Gustavo Nucci",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuccig/forge.git"
+  },
+  "homepage": "https://github.com/nuccig/forge#readme",
+  "bugs": {
+    "url": "https://github.com/nuccig/forge/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "template",
