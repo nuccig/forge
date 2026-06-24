@@ -38,6 +38,90 @@ Three problems it solves:
 
 ---
 
+## The flows
+
+forge isn't a pile of prompts — it's a **set of opinionated development workflows**,
+each one an orchestrator that encodes how strong teams ship: interrogate the idea,
+write the decision down, parallelize the build, review against your own rules, and
+refuse to call anything "done" without proof. Every flow is stack-agnostic (it calls
+**tasks**, never `npm`/`pytest`) and reads your project's rules from `AGENTS.md`, so it
+works the same in any repo forge scaffolds.
+
+| Flow | Use it when | What makes it different | How it helps you ship |
+| --- | --- | --- | --- |
+| **`plan`** | One focused change (1 PR) | Mandatory grilling *before* code; explore + design run as subagents | Catches the wrong assumption in chat, not in review |
+| **SDD pipeline** (`sdd/*`) | A feature with real decisions | Each phase emits a Markdown artifact that feeds the next; decisions become ADRs | Turns a fuzzy ask into reviewable spec → plan → tasks; no drift |
+| **`execute-tasks`** | Many tasks, one PR | True parallelism over **disjoint files**, enforced by a guard hook | Builds N tasks at once without merge chaos or lost tracking |
+| **`pr-review`** | A PR to review | 5 subagents review against *your* `AGENTS.md` + domain skills | Consistent, rule-aware review without a human bottleneck |
+| **`create-skill`** | A pattern worth enforcing | Generates a neutral skill + wires all adapters for you | Your codebase's rules become guardrails every agent obeys |
+| **`grill-me` / `decision-making`** | Any ambiguous moment | One question at a time; recommends an answer, defers the call to you | Keeps the agent from silently guessing what you meant |
+
+**Pick the scale explicitly** — the skills ask rather than assume. The two big
+orchestrators are `plan` (single PR) and the SDD pipeline (multi-PR feature).
+
+### `plan` — the single-task flow
+A focused change (one PR, a handful of files):
+**grill → branch → explore → design → approve → implement → verify → commit → PR.**
+
+- **Differential:** grilling (`grill-me`) is *not optional* — the agent interviews you
+  to surface hidden assumptions before a line is written, and exploration/design run as
+  isolated subagents so the main thread stays clean.
+- **Helps you:** the expensive mistakes (wrong scope, wrong contract) get caught in the
+  conversation instead of in code review or production.
+
+### SDD pipeline (`sdd/*`) — the feature flow
+For multi-task features carrying architectural decisions. Vocabulary follows
+[GitHub Spec Kit](https://github.com/github/spec-kit):
+
+```
+spec ──► plan ──► tasks ──► implement ──► review ──► verify
+ │        │        │           │            │          │
+ │        │        │           │            │          └─ evidence gate (blocks "done")
+ │        │        │           │            └─ multi-agent code review round
+ │        │        │           └─ one task end-to-end (in a subagent)
+ │        │        └─ decompose into disjoint task files
+ │        └─ technical design + ADRs
+ └─ requirements / problem statement
+```
+
+- **Differential:** each phase produces a durable Markdown artifact that feeds the
+  next; non-obvious choices are recorded as ADRs; a `memory/` skill carries context
+  across sessions.
+- **Helps you:** large work stays legible and reviewable phase by phase — no "what was
+  this feature supposed to do again?" drift halfway through.
+
+### `execute-tasks` — parallel build
+Runs many generated tasks on one branch / one PR.
+
+- **Differential:** parallelism is by **subagents writing to disjoint files** (up to 4
+  at once); the controller alone owns integration, git, tracking, and review, and a
+  guard **hook** physically blocks the controller from writing code while subagents
+  work. The boundary is enforced, not trusted.
+- **Helps you:** features land faster without the usual cost of concurrency — no
+  clobbered files, no half-tracked tasks, one clean integration PR.
+
+### `pr-review` — rule-aware code review
+A multi-subagent review (security, tests, architecture/conventions, regression,
+requirements) that posts inline comments.
+
+- **Differential:** the subagents read **your project's own rules** from `AGENTS.md`
+  and your domain skills — forge ships the orchestration, you supply (or generate) the
+  rules. It's assistive, never a merge gate.
+- **Helps you:** every PR gets the same thorough, convention-aware pass, so review
+  quality doesn't depend on who happens to be looking.
+
+### `create-skill` — grow the harness
+Interactively authors a new **domain** skill (e.g. "API route", "migration").
+
+- **Differential:** it grills you for trigger paths and the mandatory pipeline,
+  scaffolds a neutral `SKILL.md`, and wires the Claude/Copilot adapters via sync — so a
+  generic forge project gains project-specific guardrails without you hand-editing three
+  directories.
+- **Helps you:** the lessons you'd otherwise repeat in every review become automatic
+  context that every agent and every flow above respects.
+
+---
+
 ## Core ideas
 
 | Idea | What it means |
@@ -129,55 +213,6 @@ turns the harness from a one-shot starter into **living infrastructure**.
 
 ---
 
-## The flows
-
-forge ships orchestrators at two scales. **Always pick the scale explicitly** — the
-skills ask rather than assume.
-
-### 1. Single task — `plan`
-For a focused change (one PR, a handful of files). The `plan` skill runs:
-**grill → branch → explore → design → approve → implement → verify → commit → PR.**
-Grilling (`grill-me`) is mandatory: the agent interviews you to surface hidden
-assumptions *before* writing code.
-
-### 2. Feature — the SDD pipeline (`sdd/*`)
-For multi-task features with real architectural decisions. Vocabulary follows
-[GitHub Spec Kit](https://github.com/github/spec-kit):
-
-```
-spec ──► plan ──► tasks ──► implement ──► review ──► verify
- │        │        │           │            │          │
- │        │        │           │            │          └─ evidence gate (blocks "done")
- │        │        │           │            └─ multi-agent code review round
- │        │        │           └─ one task end-to-end (in a subagent)
- │        │        └─ decompose into disjoint task files
- │        └─ technical design + ADRs
- └─ requirements / problem statement
-```
-A `memory/` skill carries decisions across tasks. Each phase emits a Markdown
-artifact that feeds the next.
-
-### 3. Parallel execution — `execute-tasks`
-Runs many generated tasks on one branch / one PR. Its core law is portable and
-strict: **parallelism is by subagents writing to disjoint files**; the controller
-owns integration, git, tracking, and review. Up to 4 implementer subagents at once;
-the controller never writes code directly. A guard **hook** enforces the boundary.
-
-### 4. Code review — `pr-review`
-A multi-subagent review (security, tests, architecture/conventions, regression,
-requirements) that posts inline comments. The subagents read **your project's own
-rules** from `AGENTS.md` and your domain skills — forge ships the orchestration,
-you supply the rules (or generate them with `create-skill`).
-
-### 5. Growing the harness — `create-skill`
-Interactively authors a new **domain** skill (e.g. "API route", "migration"):
-it grills you for the trigger paths and the mandatory pipeline, scaffolds a neutral
-`SKILL.md` from a template, and wires the adapters via sync. This is how a generic
-forge project grows project-specific guardrails *without* you hand-editing three
-directories.
-
----
-
 ## The task-runner seam
 
 This is the trick that makes one harness fit any stack. Skills and CI say *what*
@@ -202,11 +237,14 @@ falls back to documented shell commands.
 
 | Tool | Reads | How forge serves it |
 | --- | --- | --- |
-| Codex, Cursor, Gemini, Aider, Zed, … | `AGENTS.md` | Native — it's the canonical file |
+| Codex, Cursor, Gemini, Aider, Zed, … | `AGENTS.md` | Native — it's the canonical file, **always shipped** |
 | Claude Code | `CLAUDE.md`, `.claude/skills/` | `CLAUDE.md` imports `AGENTS.md`; skills synced from `.agents/skills/` |
 | GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/` | Generated redirects to `AGENTS.md` + skills |
 
-Adding a tool later is one more adapter in `tools/sync-adapters.mjs`; the source
+`AGENTS.md` always ships. The **per-tool adapter** (`.claude/` or the Copilot files) is
+generated only for the `primary_agent` you choose at scaffold time — or for all of them
+if you pick `multi`. Switch later with `copier update`; adding a brand-new tool surface
+is one more adapter writer in `tools/sync-adapters.mjs`, and the source
 (`.agents/skills/`) never changes.
 
 ---

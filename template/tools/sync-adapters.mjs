@@ -59,11 +59,20 @@ function main() {
     return;
   }
 
-  // Rebuild adapter directories from scratch (idempotent).
-  rmSync(CLAUDE, { recursive: true, force: true });
-  rmSync(GH, { recursive: true, force: true });
-  mkdirSync(CLAUDE, { recursive: true });
-  mkdirSync(GH, { recursive: true });
+  // Which adapters to generate? Key off the rendered adapter, so a project that
+  // didn't ship the Claude or Copilot adapter doesn't get skill copies it never asked
+  // for. AGENTS.md is universal and needs no per-skill projection.
+  const doClaude = existsSync(join(ROOT, ".claude"));
+  const doCopilot = existsSync(join(ROOT, ".github", "copilot-instructions.md"));
+
+  if (!doClaude && !doCopilot) {
+    log("no Claude or Copilot adapter present — skills are read from .agents/skills directly.");
+    return;
+  }
+
+  // Rebuild the adapter directories we do generate (idempotent).
+  if (doClaude) { rmSync(CLAUDE, { recursive: true, force: true }); mkdirSync(CLAUDE, { recursive: true }); }
+  if (doCopilot) { rmSync(GH, { recursive: true, force: true }); mkdirSync(GH, { recursive: true }); }
 
   const skillDirs = findSkillDirs(SRC);
   let claudeCount = 0;
@@ -71,18 +80,21 @@ function main() {
 
   for (const dir of skillDirs) {
     const rel = relative(SRC, dir);
+    const { name, desc } = parseFrontmatter(join(dir, "SKILL.md"));
 
     // 1. Verbatim copy into .claude/skills/<rel> (SKILL.md + references/).
-    const dest = join(CLAUDE, rel);
-    mkdirSync(dirname(dest), { recursive: true });
-    cpSync(dir, dest, { recursive: true });
-    claudeCount++;
+    if (doClaude) {
+      const dest = join(CLAUDE, rel);
+      mkdirSync(dirname(dest), { recursive: true });
+      cpSync(dir, dest, { recursive: true });
+      claudeCount++;
+    }
 
     // 2. Redirect stub into .github/instructions/<name>.instructions.md.
-    const { name, desc } = parseFrontmatter(join(dir, "SKILL.md"));
-    const slug = name || rel.split(sep).join("-");
-    const sourcePath = `.agents/skills/${rel.split(sep).join("/")}/SKILL.md`;
-    const stub =
+    if (doCopilot) {
+      const slug = name || rel.split(sep).join("-");
+      const sourcePath = `.agents/skills/${rel.split(sep).join("/")}/SKILL.md`;
+      const stub =
 `---
 applyTo: "**"
 ---
@@ -93,11 +105,15 @@ Generated pointer — do not edit. The authoritative skill lives at
 
 > ${desc}
 `;
-    writeFileSync(join(GH, `${slug}.instructions.md`), stub, "utf8");
-    ghCount++;
+      writeFileSync(join(GH, `${slug}.instructions.md`), stub, "utf8");
+      ghCount++;
+    }
   }
 
-  log(`synced ${claudeCount} skill(s) → .claude/skills, ${ghCount} stub(s) → .github/instructions`);
+  const parts = [];
+  if (doClaude) parts.push(`${claudeCount} skill(s) → .claude/skills`);
+  if (doCopilot) parts.push(`${ghCount} stub(s) → .github/instructions`);
+  log(`synced ${parts.join(", ")}`);
 }
 
 try {

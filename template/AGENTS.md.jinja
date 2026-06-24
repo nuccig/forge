@@ -4,10 +4,11 @@
 
 {% endif %}This file is the **canonical contract** for every coding agent working in this
 repository. It follows the [AGENTS.md](https://agents.md) convention and is read
-natively by Codex, Cursor, Gemini, Aider, Zed, and others. Claude Code reads it via
-the `@AGENTS.md` import at the top of `.claude/CLAUDE.md`; GitHub Copilot via
-`.github/copilot-instructions.md`. **One source, many tools** — edit this file, not
-the adapters.
+natively by Codex, Cursor, Gemini, Aider, Zed, and others.
+{%- if include_claude %} Claude Code reads it via the `@AGENTS.md` import at the top of
+`.claude/CLAUDE.md`.{% endif %}{% if include_copilot %} GitHub Copilot reads it via
+`.github/copilot-instructions.md`.{% endif %} **One source, many tools** — edit this
+file, not the adapters.
 
 > Talk to humans in **{{ artifact_language }}**. Write code, commits, identifiers,
 > and skill bodies in **English**.

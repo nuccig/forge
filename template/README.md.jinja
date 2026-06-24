@@ -11,9 +11,13 @@ is **[`AGENTS.md`](AGENTS.md)** — start there.
 
 | Tool | Entry point |
 | --- | --- |
+{% if include_claude -%}
 | Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` |
+{% endif -%}
 | Codex / Cursor / Gemini / Aider / Zed | `AGENTS.md` (native) |
+{% if include_copilot -%}
 | GitHub Copilot | `.github/copilot-instructions.md` |
+{% endif %}
 
 ### The one rule that keeps it portable
 

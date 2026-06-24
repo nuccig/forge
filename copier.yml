@@ -52,7 +52,7 @@ year:
 # ─── Agent surface ───────────────────────────────────────────────────────────
 primary_agent:
   type: str
-  help: Primary coding agent (adapters are generated for the others regardless)
+  help: "Primary coding agent — ships its adapter (.claude/ or Copilot). Others read AGENTS.md natively; pick 'multi' to ship every adapter"
   choices:
     Claude Code: claude
     OpenAI Codex: codex
@@ -128,6 +128,18 @@ task_file:
   when: false
   default: "{% if task_runner == 'just' %}justfile{% elif task_runner == 'make' %}Makefile{% else %}TASKS.md{% endif %}"
 
+# Computed (hidden): which tool-specific adapters to ship. AGENTS.md is universal
+# (Codex/Cursor/Gemini/Aider/Zed read it natively); only Claude and Copilot need an
+# adapter. We ship the primary agent's adapter — and all of them when "multi".
+include_claude:
+  type: bool
+  when: false
+  default: "{% if primary_agent in ['claude', 'multi'] %}true{% else %}false{% endif %}"
+include_copilot:
+  type: bool
+  when: false
+  default: "{% if primary_agent in ['copilot', 'multi'] %}true{% else %}false{% endif %}"
+
 # ─── Feature toggles ─────────────────────────────────────────────────────────
 include_sdd:
   type: bool
@@ -165,3 +177,6 @@ _exclude:
   - "{% if not include_pr_review_ai %}.agents/skills/pr-review{% endif %}"
   - "{% if not include_pr_review_ai %}.github/workflows/pr-review.yml{% endif %}"
   - "{% if not include_hooks %}.claude/hooks{% endif %}"
+  - "{% if not include_claude %}.claude{% endif %}"
+  - "{% if not include_copilot %}.github/copilot-instructions.md{% endif %}"
+  - "{% if not include_copilot %}.github/instructions{% endif %}"

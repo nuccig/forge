@@ -51,14 +51,16 @@ host; they only ever call task-runner recipes, so the port is mechanical.
 
 ## Agent surface
 
-Adapters are generated for every supported tool regardless of `primary_agent`
-({{ primary_agent }}):
+`AGENTS.md` is universal — Codex, Cursor, Gemini, Aider, and Zed read it natively, no
+adapter required. A tool-specific adapter ships only for the primary agent
+(`{{ primary_agent }}`){% if primary_agent == 'multi' %} — and since this is a `multi` project, for all of them{% endif %}:
 
-| Tool | Entry point |
-| --- | --- |
-| Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` |
-| Codex / Cursor / Gemini / Aider / Zed | `AGENTS.md` (native) |
-| GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/` |
+| Tool | Entry point | Shipped here |
+| --- | --- | --- |
+| Codex / Cursor / Gemini / Aider / Zed | `AGENTS.md` (native) | always |
+| Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` | {% if include_claude %}yes{% else %}no{% endif %} |
+| GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/` | {% if include_copilot %}yes{% else %}no{% endif %} |
 
-Keep `AGENTS.md` as the single source; regenerate adapters with
+To add an adapter later, re-run `copier update` with a different `primary_agent` (or
+`multi`). Keep `AGENTS.md` as the single source; regenerate adapters with
 `{% if task_runner == 'just' %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}`.
