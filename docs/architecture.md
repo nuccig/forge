@@ -34,7 +34,7 @@ command propagates them:
 
 `sync-adapters.mjs` is **idempotent**: it wipes and rebuilds the adapter
 directories from the source, so toggles (`include_sdd`, …) and deletions always
-propagate. Run it via `just sync-adapters`, or let Copier run it post-generation.
+propagate. Run it via `just sync-adapters`, or let the scaffolder run it post-generation.
 
 This mirrors a pattern many teams arrive at independently: one neutral directory,
 many tool-specific projections.

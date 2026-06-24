@@ -1,0 +1,36 @@
+{
+  "name": "create-forge",
+  "version": "0.1.0",
+  "description": "Scaffold a portable, tool-agnostic AI-agent harness (AGENTS.md + Spec-Driven Development).",
+  "type": "module",
+  "bin": {
+    "create-forge": "scripts/scaffold.mjs"
+  },
+  "scripts": {
+    "setup": "node scripts/scaffold.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "template",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "scaffold",
+    "template",
+    "agents",
+    "agents.md",
+    "ai",
+    "spec-driven-development",
+    "claude",
+    "copilot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "nunjucks": "^3.2.4"
+  }
+}

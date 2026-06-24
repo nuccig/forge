@@ -28,8 +28,8 @@ Work is tracked in **GitHub Issues**. Conventions:
 flow (branch → commit → PR) is unaffected.
 {%- else -%}
 No issue tracker is configured. The plan and SDD flows run **local-only**:
-branch → commit → PR, with no external status sync. To add one later, set
-`issue_tracker` and re-run `copier update`.
+branch → commit → PR, with no external status sync. To add one later, wire the tracker
+into `AGENTS.md` (or re-scaffold with a different `issue_tracker`).
 {%- endif %}
 
 ## Git host — {{ git_host }}
@@ -61,6 +61,6 @@ adapter required. A tool-specific adapter ships only for the primary agent
 | Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` | {% if include_claude %}yes{% else %}no{% endif %} |
 | GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/` | {% if include_copilot %}yes{% else %}no{% endif %} |
 
-To add an adapter later, re-run `copier update` with a different `primary_agent` (or
-`multi`). Keep `AGENTS.md` as the single source; regenerate adapters with
+To add an adapter later, re-scaffold with a different `primary_agent` (or `multi`) and
+copy the adapter over. Keep `AGENTS.md` as the single source; regenerate adapters with
 `{% if task_runner == 'just' %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}`.

@@ -4,11 +4,16 @@ All notable changes to the **forge** template are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/), and the template is
 versioned with [Semantic Versioning](https://semver.org/).
 
-Downstream projects pull a specific version with `copier copy --vcs-ref vX.Y.Z`
-and upgrade with `copier update`. **Bump the version on every change that affects
-generated output** so `copier update` has a clear diff to merge.
+Projects are scaffolded with `npx create-forge`. Updates are manual (re-scaffold and
+merge); bump the version on changes that affect generated output.
 
 ## [Unreleased]
+
+### Changed
+- Replaced the Copier (Python) delivery with a **Node TUI scaffolder**
+  (`npx create-forge` / `git clone && npm run setup`). Zero Python; the template still
+  renders with Jinja-compatible syntax (Nunjucks). Trade-off: no automatic `copier
+  update` — updates are manual.
 
 ### Added
 - Initial harness extraction.

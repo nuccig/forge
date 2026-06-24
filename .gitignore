@@ -7,16 +7,11 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Copier / Python tooling (if used to build/test the template)
-__pycache__/
-*.pyc
-.venv/
-.copier-answers.yml
-
-# Local render output from manual template testing
-/.render-test/
+# Local render output from manual scaffolder testing
 /.render-*/
+/.g-*/
+/.nrt/
 /tmp/
 
-# Node (sync tooling deps, if any)
+# Node
 node_modules/

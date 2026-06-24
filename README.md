@@ -2,8 +2,8 @@
 
 **A portable, tool-agnostic agent harness for Spec-Driven Development.**
 
-forge is a [Copier](https://copier.readthedocs.io) template that scaffolds a new
-repository already wired for AI coding agents: a canonical `AGENTS.md` contract,
+forge is a project template — a small Node TUI (`npx create-forge`) — that scaffolds a
+new repository already wired for AI coding agents: a canonical `AGENTS.md` contract,
 a curated set of reusable **skills**, a full **spec → plan → tasks → implement**
 pipeline, optional **hooks**, and **CI/CD** — all decoupled from any specific
 language, framework, or vendor.
@@ -20,8 +20,8 @@ the same harness drops into a Python service, a Go CLI, or a TypeScript app.
 AI agents are only as good as the context and guardrails you give them. Re-deriving
 those for every new repo is wasteful and inconsistent. forge packages the *workflow*
 — how to plan, grill assumptions, decompose, implement in parallel, review, and
-verify — as portable assets that any agent can read, and that you can **evolve once
-and pull everywhere** via `copier update`.
+verify — as portable assets that any agent can read, and that you **scaffold in seconds**
+with one command.
 
 Three problems it solves:
 
@@ -211,96 +211,77 @@ and Copilot surfaces update together. This is enforced, not a convention.
 
 ## Requirements
 
+The scaffolder is a small Node TUI — **no Python, no global install**.
+
 | Tool | Why | Minimum |
 | --- | --- | --- |
-| [Copier](https://copier.readthedocs.io) | Renders + updates the template | ≥ 9 (needs Python ≥ 3.9) |
-| Node | Runs `tools/sync-adapters.mjs` and the optional guard hook | ≥ 18 |
-| A task runner | `just`/`make` ergonomics (`just` recommended) | optional — `npm` / shell work too |
+| Node | Runs the scaffolder and `tools/sync-adapters.mjs` | ≥ 18 (ships `npx`) |
+| A task runner | `just`/`make` ergonomics in the generated project (`just` recommended) | optional — `npm` / shell work too |
 
 ---
 
 ## Installation
 
-### 1. Install the prerequisites
+Two ways to run it — both drive the same TUI.
 
-<details open>
-<summary><strong>Unix / macOS</strong></summary>
-
-```bash
-# --- Copier (pick ONE) ---
-pipx install copier                 # recommended (isolated CLI)
-# python3 -m pip install --user copier
-# uv tool install copier
-
-# If pipx is missing:
-#   python3 -m pip install --user pipx && python3 -m pipx ensurepath   # then restart the shell
-
-# --- Node ≥ 18 (skip if already installed) ---
-# via nvm:
-#   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-#   nvm install --lts
-# or:  macOS: brew install node   |   Debian/Ubuntu: sudo apt install nodejs
-
-# --- Optional task runner ---
-brew install just                   # macOS
-# Debian/Ubuntu: sudo apt install just   (or: cargo install just)
-
-# --- Verify ---
-copier --version && node --version
-```
-</details>
-
-<details>
-<summary><strong>Windows (PowerShell)</strong></summary>
-
-```powershell
-# --- Copier (pick ONE) ---
-pipx install copier                 # recommended (isolated CLI)
-# python -m pip install --user copier
-# uv tool install copier
-
-# If pipx is missing:
-#   python -m pip install --user pipx ; python -m pipx ensurepath   # then restart PowerShell
-
-# --- Node ≥ 18 and optional task runner (skip if already installed) ---
-winget install OpenJS.NodeJS.LTS
-winget install Casey.Just           # the `just` task runner (optional)
-
-# --- Verify ---
-copier --version ; node --version
-```
-
-> If `copier` isn't found after install, its scripts dir isn't on `PATH`. pipx fixes
-> this with `pipx ensurepath` (restart the shell). For a `pip --user` install, add
-> `%APPDATA%\Python\Python3xx\Scripts` to `PATH`.
-</details>
-
-### 2. Scaffold a project
+### A. `npx` (no clone)
 
 ```bash
-# Render the template (interactive prompts: name, primary agent, task runner, …)
-copier copy gh:nuccig/forge ./my-project
+npx create-forge my-project
+```
+
+That's it — the interactive prompts ask for the project name, primary agent, task
+runner, and toggles, then render the project into `./my-project`.
+
+### B. Clone + `npm run setup`
+
+```bash
+git clone https://github.com/nuccig/forge.git
+cd forge
+npm install
+npm run setup -- ../my-project        # same TUI, renders into ../my-project
+```
+
+### Non-interactive (CI / scripted)
+
+```bash
+npx create-forge my-project --defaults
+npx create-forge my-project --defaults --set task_runner=make --set include_sdd=false
+```
+
+`--defaults` takes every default; `--set key=value` overrides any prompt (repeatable).
+
+### After scaffolding
+
+```bash
 cd my-project
-```
-
-### 3. Wire it up and commit
-
-```bash
 # Edit the justfile so the task commands match your stack, then regenerate adapters:
-just sync-adapters                  # or, without just: node tools/sync-adapters.mjs
+just sync-adapters                    # or, without just: node tools/sync-adapters.mjs
 git init && git add -A && git commit -m "chore: scaffold from forge"
 ```
 
 Open the project in your agent of choice and ask it to read `AGENTS.md`. For Claude
 Code, `.claude/CLAUDE.md` imports it automatically.
 
-### Pulling improvements later
+### Optional: a task runner
 
-Because forge is a Copier template, projects stay linked to it:
+The generated `justfile` is the recommended seam. Install `just` if you don't have it:
 
 ```bash
-copier update          # merges new harness versions into your existing repo
+# macOS:            brew install just
+# Debian/Ubuntu:    sudo apt install just      (or: cargo install just)
+# Windows:          winget install Casey.Just
 ```
+
+No `just`? `make`, `npm run`, or plain shell work the same way — pick the matching
+`task_runner` at scaffold time.
+
+### Pulling improvements later
+
+Updates are **manual** (the scaffolder doesn't track a link back to forge). To adopt a
+newer harness: re-run `create-forge` into a scratch directory and merge the pieces you
+want, or watch the [forge repo](https://github.com/nuccig/forge) and copy changes
+across. Your `.agents/skills/` edits are yours — nothing overwrites them behind your back.
 
 Your local edits are preserved; template changes are 3-way merged. This is what
 turns the harness from a one-shot starter into **living infrastructure**.
@@ -337,13 +318,13 @@ falls back to documented shell commands.
 
 `AGENTS.md` always ships. The **per-tool adapter** (`.claude/` or the Copilot files) is
 generated only for the `primary_agent` you choose at scaffold time — or for all of them
-if you pick `multi`. Switch later with `copier update`; adding a brand-new tool surface
-is one more adapter writer in `tools/sync-adapters.mjs`, and the source
-(`.agents/skills/`) never changes.
+if you pick `multi`. Re-scaffold (or copy the adapter over) to switch later; adding a
+brand-new tool surface is one more adapter writer in `tools/sync-adapters.mjs`, and the
+source (`.agents/skills/`) never changes.
 
 ---
 
-## Configuration (Copier variables)
+## Configuration (scaffold options)
 
 | Variable | Purpose |
 | --- | --- |
@@ -366,8 +347,8 @@ is one more adapter writer in `tools/sync-adapters.mjs`, and the source
    syncs the adapters. Never hand-edit `.claude/skills/` or `.github/instructions/`
    — they are generated.
 2. **Change the stack** → edit the `justfile` recipes. Nothing else moves.
-3. **Improve the harness itself** → edit `.agents/skills/`, bump the version, and
-   downstream projects pull it with `copier update`.
+3. **Improve the harness itself** → edit `.agents/skills/` and `template/`; new projects
+   pick it up on their next `create-forge` run.
 4. **Add a new tool surface** → extend `tools/sync-adapters.mjs` with a new adapter
    writer; re-run `just sync-adapters`.
 5. **Tune CI** → the workflows call task-runner recipes, so they follow your
@@ -384,7 +365,8 @@ See [`docs/`](docs/) for deeper notes:
 
 forge dog-foods its own conventions — see [`AGENTS.md`](AGENTS.md) at the repo root
 for how to contribute to the template. The template content lives under
-[`template/`](template/); `copier.yml` defines the questions.
+[`template/`](template/); `scripts/config.mjs` defines the scaffold questions, and
+`scripts/scaffold.mjs` is the TUI.
 
 ## License
 

@@ -7,7 +7,7 @@
 //
 // Idempotent: wipes and rebuilds the adapter directories, so toggles and deletions
 // always propagate. Pure Node (>= 18), no dependencies. Always exits 0 so it can run as
-// a Copier post-generation task without ever failing the scaffold.
+// the scaffolder's post-generation step without ever failing the scaffold.
 //
 //   node tools/sync-adapters.mjs            # verbose
 //   node tools/sync-adapters.mjs --silent   # quiet (used post-generation)

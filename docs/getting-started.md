@@ -1,11 +1,11 @@
 # Getting started with a forge project
 
-The first hour after `copier copy`.
+The first hour after `npx create-forge`.
 
 ## 1. Scaffold
 
 ```bash
-copier copy gh:nuccig/forge ./my-project
+npx create-forge my-project          # or: git clone … && npm run setup -- ./my-project
 cd my-project
 ```
 
@@ -40,7 +40,7 @@ just sync-adapters
 ```
 
 This regenerates `.claude/skills/` and `.github/instructions/` from
-`.agents/skills/`. (Copier already ran it once post-generation.)
+`.agents/skills/`. (The scaffolder already ran it once post-generation.)
 
 ## 4. Point your agent at the repo
 
@@ -70,6 +70,6 @@ git init && git add -A && git commit -m "chore: scaffold from forge"
 
 ## Keeping up to date
 
-```bash
-copier update      # pull later harness versions; local edits are 3-way merged
-```
+Updates are manual — the scaffolder doesn't keep a link back to forge. To adopt a newer
+harness, re-run `create-forge` into a scratch directory and merge the pieces you want
+(your `.agents/skills/` edits are never overwritten behind your back).
