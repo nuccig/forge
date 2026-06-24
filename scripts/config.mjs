@@ -17,26 +17,42 @@ function defaultPrefix(slug) {
   return (slug || "proj").replace(/[^a-z0-9]/gi, "").slice(0, 4).toUpperCase() || "PROJ";
 }
 
+// Group headers shown in the TUI before their questions — each states the OBJECTIVE
+// of that step so the user knows why it's being asked.
+export const groups = {
+  identity: { title: "Identity", objective: "Names used in README, LICENSE, CODEOWNERS, and branch/PR prefixes." },
+  agent: { title: "Agent surface", objective: "Which agent leads (decides which adapter ships) and the human language it speaks." },
+  integrations: { title: "Integrations", objective: "Issue tracker + git host. They light up status sync; pick 'none' to stay local-only." },
+  tasks: { title: "Task runner (the stack-agnostic seam)", objective: "How skills and CI run commands. You can leave the commands blank and fill the runner file later." },
+  features: { title: "Optional features", objective: "Toggle parts of the harness on or off." },
+  meta: { title: "License", objective: "Legal terms for the generated project." },
+};
+
 // Question schema. `when` gates visibility; `initial` may be a function of prior answers.
-// Types: text | select | confirm. Selects list {value, label}.
+// `hint` is an example shown as a placeholder in the TUI. Types: text | select | confirm.
 export const questions = [
-  { name: "project_name", type: "text", message: "Project name", initial: () => "My Project" },
-  { name: "project_slug", type: "text", message: "Slug (kebab-case)", initial: (a) => slugify(a.project_name) },
-  { name: "project_description", type: "text", message: "One-line description", initial: () => "" },
-  { name: "author_name", type: "text", message: "Author or org (LICENSE, CODEOWNERS)", initial: () => "" },
+  // ── Identity ──
+  { group: "identity", name: "project_name", type: "text", message: "Project name", hint: "e.g. Acme API", initial: () => "My Project" },
+  { group: "identity", name: "project_slug", type: "text", message: "Slug — used in dirs, branches, package names", hint: "e.g. acme-api", initial: (a) => slugify(a.project_name) },
+  { group: "identity", name: "project_description", type: "text", message: "One-line description", hint: "e.g. Internal billing service", initial: () => "" },
+  { group: "identity", name: "author_name", type: "text", message: "Author or org — for LICENSE and CODEOWNERS", hint: "e.g. Acme Inc / Jane Doe", initial: () => "" },
+
+  // ── Agent surface ──
   {
-    name: "primary_agent", type: "select", message: "Primary coding agent",
+    group: "agent", name: "primary_agent", type: "select",
+    message: "Primary coding agent — ships its adapter; others read AGENTS.md natively",
     initial: () => "claude",
     options: [
-      { value: "claude", label: "Claude Code" },
-      { value: "codex", label: "OpenAI Codex" },
-      { value: "cursor", label: "Cursor" },
-      { value: "copilot", label: "GitHub Copilot" },
-      { value: "multi", label: "Multiple / agnostic (ship every adapter)" },
+      { value: "claude", label: "Claude Code — generates .claude/ (CLAUDE.md, skills, hooks)" },
+      { value: "codex", label: "OpenAI Codex — reads AGENTS.md, no extra adapter" },
+      { value: "cursor", label: "Cursor — reads AGENTS.md, no extra adapter" },
+      { value: "copilot", label: "GitHub Copilot — generates .github/ instructions" },
+      { value: "multi", label: "Multiple / agnostic — ship every adapter" },
     ],
   },
   {
-    name: "artifact_language", type: "select", message: "Language the agent talks to humans in (skills stay English)",
+    group: "agent", name: "artifact_language", type: "select",
+    message: "Language the agent talks to humans in (skill bodies stay English)",
     initial: () => "en",
     options: [
       { value: "en", label: "English" },
@@ -44,22 +60,28 @@ export const questions = [
       { value: "es", label: "Español" },
     ],
   },
+
+  // ── Integrations ──
   {
-    name: "issue_tracker", type: "select", message: "Issue tracker (none = local-only)",
+    group: "integrations", name: "issue_tracker", type: "select",
+    message: "Issue tracker for plan/SDD status sync",
     initial: () => "github",
     options: [
       { value: "github", label: "GitHub Issues" },
       { value: "linear", label: "Linear" },
-      { value: "none", label: "None" },
+      { value: "none", label: "None — local-only (branch → commit → PR)" },
     ],
   },
   {
-    name: "issue_prefix", type: "text", message: "Issue key prefix (e.g. ACME for ACME-42)",
+    group: "integrations", name: "issue_prefix", type: "text",
+    message: "Issue key prefix used in branches/PRs",
+    hint: "e.g. ACME → ACME-42",
     when: (a) => a.issue_tracker !== "none",
     initial: (a) => defaultPrefix(a.project_slug || slugify(a.project_name)),
   },
   {
-    name: "git_host", type: "select", message: "Git host",
+    group: "integrations", name: "git_host", type: "select",
+    message: "Git host — where PRs/CI live",
     initial: () => "github",
     options: [
       { value: "github", label: "GitHub" },
@@ -67,27 +89,34 @@ export const questions = [
       { value: "none", label: "None" },
     ],
   },
+
+  // ── Task runner ──
   {
-    name: "task_runner", type: "select", message: "Task runner (the stack-agnostic seam)",
+    group: "tasks", name: "task_runner", type: "select",
+    message: "Task runner — the one file that names your real stack commands",
     initial: () => "just",
     options: [
-      { value: "just", label: "just (recommended)" },
-      { value: "make", label: "make" },
-      { value: "npm", label: "npm scripts" },
-      { value: "none", label: "none / documented shell" },
+      { value: "just", label: "just (recommended) — renders a justfile" },
+      { value: "make", label: "make — renders a Makefile" },
+      { value: "npm", label: "npm scripts — documents the contract in TASKS.md" },
+      { value: "none", label: "none — documented shell commands" },
     ],
   },
-  { name: "lint_cmd", type: "text", message: "Lint command (blank = skipped)", initial: () => "" },
-  { name: "typecheck_cmd", type: "text", message: "Typecheck command (blank = skipped)", initial: () => "" },
-  { name: "test_cmd", type: "text", message: "Test command (blank = skipped)", initial: () => "" },
-  { name: "build_cmd", type: "text", message: "Build command (blank = skipped)", initial: () => "" },
-  { name: "e2e_cmd", type: "text", message: "E2E command (blank = skipped)", initial: () => "" },
-  { name: "runtime_paths", type: "text", message: "Globs that gate E2E/runtime checks in CI (comma-separated)", initial: () => "src/**" },
-  { name: "include_sdd", type: "confirm", message: "Include the SDD pipeline (spec → plan → tasks → implement)?", initial: () => true },
-  { name: "include_pr_review_ai", type: "confirm", message: "Include the multi-agent AI PR-review skill + workflow?", initial: () => true },
-  { name: "include_hooks", type: "confirm", message: "Include the controller-write guard hook (Claude Code)?", initial: () => true },
+  { group: "tasks", name: "lint_cmd", type: "text", message: "Lint command (blank = skipped)", hint: "e.g. eslint . / ruff check .", initial: () => "" },
+  { group: "tasks", name: "typecheck_cmd", type: "text", message: "Typecheck command (blank = skipped)", hint: "e.g. tsc --noEmit / mypy .", initial: () => "" },
+  { group: "tasks", name: "test_cmd", type: "text", message: "Test command (blank = skipped)", hint: "e.g. vitest run / pytest / go test ./...", initial: () => "" },
+  { group: "tasks", name: "build_cmd", type: "text", message: "Build command (blank = skipped)", hint: "e.g. next build / go build ./...", initial: () => "" },
+  { group: "tasks", name: "e2e_cmd", type: "text", message: "E2E command (blank = skipped)", hint: "e.g. playwright test", initial: () => "" },
+  { group: "tasks", name: "runtime_paths", type: "text", message: "Globs that gate E2E/runtime checks in CI (comma-separated)", hint: "e.g. src/**,app/**", initial: () => "src/**" },
+
+  // ── Optional features ──
+  { group: "features", name: "include_sdd", type: "confirm", message: "Include the SDD pipeline (spec → plan → tasks → implement → review → verify)?", initial: () => true },
+  { group: "features", name: "include_pr_review_ai", type: "confirm", message: "Include the multi-agent AI PR-review skill + workflow?", initial: () => true },
+  { group: "features", name: "include_hooks", type: "confirm", message: "Include the controller-write guard hook (Claude Code only)?", initial: () => true },
+
+  // ── License ──
   {
-    name: "license", type: "select", message: "License",
+    group: "meta", name: "license", type: "select", message: "License",
     initial: () => "MIT",
     options: [
       { value: "MIT", label: "MIT" },

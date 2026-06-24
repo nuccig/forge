@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import * as p from "@clack/prompts";
 
-import { questions, computeContext, slugify } from "./config.mjs";
+import { questions, groups, computeContext, slugify } from "./config.mjs";
 import { renderTree } from "./render.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -82,8 +82,17 @@ async function promptAll(initialTarget) {
   }
 
   const answers = {};
+  let currentGroup = null;
   for (const q of questions) {
     if (q.when && !q.when(answers)) continue;
+
+    // Print the group's objective the first time we enter it.
+    if (q.group && q.group !== currentGroup) {
+      currentGroup = q.group;
+      const g = groups[q.group];
+      if (g) p.note(g.objective, g.title);
+    }
+
     const init = typeof q.initial === "function" ? q.initial(answers) : q.initial;
     let res;
     if (q.type === "select") {
@@ -91,9 +100,10 @@ async function promptAll(initialTarget) {
     } else if (q.type === "confirm") {
       res = await p.confirm({ message: q.message, initialValue: init });
     } else {
+      // Show the example (hint) as the grey placeholder; apply the default on empty.
       res = await p.text({
         message: q.message,
-        placeholder: init || "",
+        placeholder: q.hint || init || "",
         defaultValue: init || "",
       });
     }
