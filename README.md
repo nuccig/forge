@@ -57,11 +57,31 @@ works the same in any repo forge scaffolds.
 | **`grill-me` / `decision-making`** | Any ambiguous moment | One question at a time; recommends an answer, defers the call to you | Keeps the agent from silently guessing what you meant |
 
 **Pick the scale explicitly** — the skills ask rather than assume. The two big
-orchestrators are `plan` (single PR) and the SDD pipeline (multi-PR feature).
+orchestrators are `plan` (single PR) and the SDD pipeline (multi-PR feature). How they
+fit together:
+
+```mermaid
+flowchart TD
+    A([Something to build]) --> B{What is it?}
+    B -->|Focused change, 1 PR| P[plan]
+    B -->|Feature with decisions| S[SDD: spec, plan, tasks]
+    B -->|A rule worth enforcing| C[create-skill]
+    S --> E[execute-tasks]
+    P --> R[pr-review]
+    E --> R
+    R --> M([Merge])
+    C -.->|makes rules for| R
+```
 
 ### `plan` — the single-task flow
 A focused change (one PR, a handful of files):
-**grill → branch → explore → design → approve → implement → verify → commit → PR.**
+
+```mermaid
+flowchart LR
+    G[grill] --> B[branch] --> X[explore] --> D[design] --> A{approve?}
+    A -->|no| D
+    A -->|yes| I[implement] --> V[verify] --> Cm[commit] --> PR[open PR]
+```
 
 - **Differential:** grilling (`grill-me`) is *not optional* — the agent interviews you
   to surface hidden assumptions before a line is written, and exploration/design run as
@@ -73,15 +93,16 @@ A focused change (one PR, a handful of files):
 For multi-task features carrying architectural decisions. Vocabulary follows
 [GitHub Spec Kit](https://github.com/github/spec-kit):
 
-```
-spec ──► plan ──► tasks ──► implement ──► review ──► verify
- │        │        │           │            │          │
- │        │        │           │            │          └─ evidence gate (blocks "done")
- │        │        │           │            └─ multi-agent code review round
- │        │        │           └─ one task end-to-end (in a subagent)
- │        │        └─ decompose into disjoint task files
- │        └─ technical design + ADRs
- └─ requirements / problem statement
+```mermaid
+flowchart LR
+    SP[spec<br/>problem and why] --> PL[plan<br/>design + ADRs]
+    PL --> TK[tasks<br/>disjoint files]
+    TK --> IM[implement<br/>in subagents]
+    IM --> RV[review<br/>round]
+    RV --> VF{verify<br/>evidence gate}
+    VF -->|fail| IM
+    VF -->|pass| DN([merge])
+    MEM[(memory)] -.carries context.-> IM
 ```
 
 - **Differential:** each phase produces a durable Markdown artifact that feeds the
@@ -92,6 +113,18 @@ spec ──► plan ──► tasks ──► implement ──► review ──�
 
 ### `execute-tasks` — parallel build
 Runs many generated tasks on one branch / one PR.
+
+```mermaid
+flowchart TD
+    C[Controller] -->|spawn up to 4| S1[subagent A]
+    C --> S2[subagent B]
+    C --> S3[subagent C]
+    S1 --> CI[Controller integrates]
+    S2 --> CI
+    S3 --> CI
+    CI -->|serial git + verify| PR[one PR]
+    HK{{guard hook}} -.blocks code writes.-> C
+```
 
 - **Differential:** parallelism is by **subagents writing to disjoint files** (up to 4
   at once); the controller alone owns integration, git, tracking, and review, and a
