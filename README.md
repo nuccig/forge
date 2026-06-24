@@ -1,5 +1,9 @@
 # forge
 
+[![npm](https://img.shields.io/npm/v/@nuccig/create-forge?logo=npm)](https://www.npmjs.com/package/@nuccig/create-forge)
+[![node](https://img.shields.io/node/v/@nuccig/create-forge)](https://nodejs.org)
+[![license](https://img.shields.io/github/license/nuccig/forge)](LICENSE)
+
 **A portable, tool-agnostic agent harness for Spec-Driven Development.**
 
 forge is a project template — a small Node TUI (`npx create-forge`) — that scaffolds a
@@ -363,10 +367,10 @@ See [`docs/`](docs/) for deeper notes:
 
 ## Working on forge itself
 
-forge dog-foods its own conventions — see [`AGENTS.md`](AGENTS.md) at the repo root
-for how to contribute to the template. The template content lives under
-[`template/`](template/); `scripts/config.mjs` defines the scaffold questions, and
-`scripts/scaffold.mjs` is the TUI.
+forge dog-foods its own conventions. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for dev
+setup, the render/test loop, and the release flow; [`AGENTS.md`](AGENTS.md) is the
+agent-facing version. The template content lives under [`template/`](template/);
+`scripts/config.mjs` defines the scaffold questions and `scripts/scaffold.mjs` is the TUI.
 
 ## License
 
