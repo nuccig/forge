@@ -6,7 +6,7 @@
 
 **A portable, tool-agnostic agent harness for Spec-Driven Development.**
 
-forge is a project template — a small Node TUI (`npx create-forge`) — that scaffolds a
+forge is a project template — a small Node TUI (`npx @nuccig/create-forge`) — that scaffolds a
 new repository already wired for AI coding agents: a canonical `AGENTS.md` contract,
 a curated set of reusable **skills**, a full **spec → plan → tasks → implement**
 pipeline, optional **hooks**, and **CI/CD** — all decoupled from any specific
@@ -51,14 +51,14 @@ refuse to call anything "done" without proof. Every flow is stack-agnostic (it c
 **tasks**, never `npm`/`pytest`) and reads your project's rules from `AGENTS.md`, so it
 works the same in any repo forge scaffolds.
 
-| Flow | Use it when | What makes it different | How it helps you ship |
-| --- | --- | --- | --- |
-| **`plan`** | One focused change (1 PR) | Mandatory grilling *before* code; explore + design run as subagents | Catches the wrong assumption in chat, not in review |
-| **SDD pipeline** (`sdd/*`) | A feature with real decisions | Each phase emits a Markdown artifact that feeds the next; decisions become ADRs | Turns a fuzzy ask into reviewable spec → plan → tasks; no drift |
-| **`execute-tasks`** | Many tasks, one PR | True parallelism over **disjoint files**, enforced by a guard hook | Builds N tasks at once without merge chaos or lost tracking |
-| **`pr-review`** | A PR to review | 5 subagents review against *your* `AGENTS.md` + domain skills | Consistent, rule-aware review without a human bottleneck |
-| **`create-skill`** | A pattern worth enforcing | Generates a neutral skill + wires all adapters for you | Your codebase's rules become guardrails every agent obeys |
-| **`grill-me` / `decision-making`** | Any ambiguous moment | One question at a time; recommends an answer, defers the call to you | Keeps the agent from silently guessing what you meant |
+| Flow                               | Use it when                   | What makes it different                                                         | How it helps you ship                                           |
+| ---------------------------------- | ----------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **`plan`**                         | One focused change (1 PR)     | Mandatory grilling *before* code; explore + design run as subagents             | Catches the wrong assumption in chat, not in review             |
+| **SDD pipeline** (`sdd/*`)         | A feature with real decisions | Each phase emits a Markdown artifact that feeds the next; decisions become ADRs | Turns a fuzzy ask into reviewable spec → plan → tasks; no drift |
+| **`execute-tasks`**                | Many tasks, one PR            | True parallelism over **disjoint files**, enforced by a guard hook              | Builds N tasks at once without merge chaos or lost tracking     |
+| **`pr-review`**                    | A PR to review                | 5 subagents review against *your* `AGENTS.md` + domain skills                   | Consistent, rule-aware review without a human bottleneck        |
+| **`create-skill`**                 | A pattern worth enforcing     | Generates a neutral skill + wires all adapters for you                          | Your codebase's rules become guardrails every agent obeys       |
+| **`grill-me` / `decision-making`** | Any ambiguous moment          | One question at a time; recommends an answer, defers the call to you            | Keeps the agent from silently guessing what you meant           |
 
 **Pick the scale explicitly** — the skills ask rather than assume. The two big
 orchestrators are `plan` (single PR) and the SDD pipeline (multi-PR feature). How they
@@ -161,14 +161,14 @@ Interactively authors a new **domain** skill (e.g. "API route", "migration").
 
 ## Core ideas
 
-| Idea | What it means |
-| --- | --- |
-| **`AGENTS.md` is canonical** | One file at the repo root is the agent contract. Everything else is generated from or points back to it. |
-| **Adapters, not copies** | `.claude/` and `.github/` are thin adapters. `.claude/CLAUDE.md` imports `AGENTS.md`; `.github/copilot-instructions.md` points at it. Skills live once in `.agents/skills/` and are **synced** to each tool. |
-| **Task-runner seam** | Skills/CI invoke `just test`, not `npm test`. The `justfile` is the only place the real stack appears. |
-| **Curated skills** | A small, high-signal set: `plan`, `grill-me`, `execute-tasks`, `decision-making`, `pr-review`, `create-skill`, and the `sdd/*` pipeline. |
-| **Generate, don't fork** | `create-skill` scaffolds new **domain** skills for *your* stack; forge ships none, so there is nothing project-specific to delete. |
-| **Optional integrations** | Issue tracker (Linear/GitHub) and git host are adapters chosen at scaffold time. Without them, skills degrade gracefully to local-only. |
+| Idea                         | What it means                                                                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`AGENTS.md` is canonical** | One file at the repo root is the agent contract. Everything else is generated from or points back to it.                                                                                                     |
+| **Adapters, not copies**     | `.claude/` and `.github/` are thin adapters. `.claude/CLAUDE.md` imports `AGENTS.md`; `.github/copilot-instructions.md` points at it. Skills live once in `.agents/skills/` and are **synced** to each tool. |
+| **Task-runner seam**         | Skills/CI invoke `just test`, not `npm test`. The `justfile` is the only place the real stack appears.                                                                                                       |
+| **Curated skills**           | A small, high-signal set: `plan`, `grill-me`, `execute-tasks`, `decision-making`, `pr-review`, `create-skill`, and the `sdd/*` pipeline.                                                                     |
+| **Generate, don't fork**     | `create-skill` scaffolds new **domain** skills for *your* stack; forge ships none, so there is nothing project-specific to delete.                                                                           |
+| **Optional integrations**    | Issue tracker (Linear/GitHub) and git host are adapters chosen at scaffold time. Without them, skills degrade gracefully to local-only.                                                                      |
 
 ---
 
@@ -217,9 +217,9 @@ and Copilot surfaces update together. This is enforced, not a convention.
 
 The scaffolder is a small Node TUI — **no Python, no global install**.
 
-| Tool | Why | Minimum |
-| --- | --- | --- |
-| Node | Runs the scaffolder and `tools/sync-adapters.mjs` | ≥ 18 (ships `npx`) |
+| Tool          | Why                                                                    | Minimum                           |
+| ------------- | ---------------------------------------------------------------------- | --------------------------------- |
+| Node          | Runs the scaffolder and `tools/sync-adapters.mjs`                      | ≥ 18 (ships `npx`)                |
 | A task runner | `just`/`make` ergonomics in the generated project (`just` recommended) | optional — `npm` / shell work too |
 
 ---
@@ -231,7 +231,7 @@ Two ways to run it — both drive the same TUI.
 ### A. `npx` (no clone)
 
 ```bash
-npx create-forge my-project
+npx @nuccig/create-forge my-project
 ```
 
 That's it — the interactive prompts ask for the project name, primary agent, task
@@ -249,8 +249,8 @@ npm run setup -- ../my-project        # same TUI, renders into ../my-project
 ### Non-interactive (CI / scripted)
 
 ```bash
-npx create-forge my-project --defaults
-npx create-forge my-project --defaults --set task_runner=make --set include_sdd=false
+npx @nuccig/create-forge my-project --defaults
+npx @nuccig/create-forge my-project --defaults --set task_runner=make --set include_sdd=false
 ```
 
 `--defaults` takes every default; `--set key=value` overrides any prompt (repeatable).
@@ -314,11 +314,11 @@ falls back to documented shell commands.
 
 ## Tool compatibility
 
-| Tool | Reads | How forge serves it |
-| --- | --- | --- |
-| Codex, Cursor, Gemini, Aider, Zed, … | `AGENTS.md` | Native — it's the canonical file, **always shipped** |
-| Claude Code | `CLAUDE.md`, `.claude/skills/` | `CLAUDE.md` imports `AGENTS.md`; skills synced from `.agents/skills/` |
-| GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/` | Generated redirects to `AGENTS.md` + skills |
+| Tool                                 | Reads                                                      | How forge serves it                                                   |
+| ------------------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------- |
+| Codex, Cursor, Gemini, Aider, Zed, … | `AGENTS.md`                                                | Native — it's the canonical file, **always shipped**                  |
+| Claude Code                          | `CLAUDE.md`, `.claude/skills/`                             | `CLAUDE.md` imports `AGENTS.md`; skills synced from `.agents/skills/` |
+| GitHub Copilot                       | `.github/copilot-instructions.md`, `.github/instructions/` | Generated redirects to `AGENTS.md` + skills                           |
 
 `AGENTS.md` always ships. The **per-tool adapter** (`.claude/` or the Copilot files) is
 generated only for the `primary_agent` you choose at scaffold time — or for all of them
@@ -330,18 +330,18 @@ source (`.agents/skills/`) never changes.
 
 ## Configuration (scaffold options)
 
-| Variable | Purpose |
-| --- | --- |
-| `project_name`, `project_slug`, `project_description`, `author_name` | Identity |
-| `primary_agent` | Which agent this repo targets (`claude`/`codex`/`cursor`/`copilot`/`multi`) |
-| `artifact_language` | Language the agent talks to humans in (skills stay English) |
-| `issue_tracker`, `issue_prefix` | `linear` / `github` / `none` + branch/PR key prefix |
-| `git_host` | `github` / `gitlab` / `none` |
-| `task_runner` | `just` / `make` / `npm` / `none` |
-| `lint_cmd`, `typecheck_cmd`, `test_cmd`, `build_cmd`, `e2e_cmd` | Real stack commands |
-| `runtime_paths` | Globs that gate runtime/E2E checks in CI |
-| `include_sdd`, `include_pr_review_ai`, `include_hooks` | Feature toggles |
-| `license` | `MIT` / `Apache-2.0` / `proprietary` |
+| Variable                                                             | Purpose                                                                     |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `project_name`, `project_slug`, `project_description`, `author_name` | Identity                                                                    |
+| `primary_agent`                                                      | Which agent this repo targets (`claude`/`codex`/`cursor`/`copilot`/`multi`) |
+| `artifact_language`                                                  | Language the agent talks to humans in (skills stay English)                 |
+| `issue_tracker`, `issue_prefix`                                      | `linear` / `github` / `none` + branch/PR key prefix                         |
+| `git_host`                                                           | `github` / `gitlab` / `none`                                                |
+| `task_runner`                                                        | `just` / `make` / `npm` / `none`                                            |
+| `lint_cmd`, `typecheck_cmd`, `test_cmd`, `build_cmd`, `e2e_cmd`      | Real stack commands                                                         |
+| `runtime_paths`                                                      | Globs that gate runtime/E2E checks in CI                                    |
+| `include_sdd`, `include_pr_review_ai`, `include_hooks`               | Feature toggles                                                             |
+| `license`                                                            | `MIT` / `Apache-2.0` / `proprietary`                                        |
 
 ---
 

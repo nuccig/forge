@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scaffold.mjs — interactive (TUI) and non-interactive scaffolder for forge.
 //
-//   npx create-forge my-app                 # TUI
+//   npx @nuccig/create-forge my-app                 # TUI
 //   npm run setup -- my-app                  # TUI (from a clone)
 //   node scripts/scaffold.mjs my-app --defaults
 //   node scripts/scaffold.mjs my-app --defaults --set task_runner=make --set include_sdd=false

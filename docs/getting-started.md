@@ -1,11 +1,11 @@
 # Getting started with a forge project
 
-The first hour after `npx create-forge`.
+The first hour after `npx @nuccig/create-forge`.
 
 ## 1. Scaffold
 
 ```bash
-npx create-forge my-project          # or: git clone … && npm run setup -- ./my-project
+npx @nuccig/create-forge my-project          # or: git clone … && npm run setup -- ./my-project
 cd my-project
 ```
 
@@ -54,13 +54,13 @@ the plan workflow." It should answer from the file.
 
 ## 5. Pick a flow
 
-| You have… | Use |
-| --- | --- |
-| A focused change (1 PR) | the `plan` skill — it grills you first |
-| A feature with real decisions | the SDD pipeline: `spec → plan → tasks → implement` |
-| Generated tasks to run in parallel | `execute-tasks` |
-| A PR to review | `pr-review` |
-| A recurring stack-specific pattern to enforce | `create-skill` to author a domain skill |
+| You have…                                     | Use                                                 |
+| --------------------------------------------- | --------------------------------------------------- |
+| A focused change (1 PR)                       | the `plan` skill — it grills you first              |
+| A feature with real decisions                 | the SDD pipeline: `spec → plan → tasks → implement` |
+| Generated tasks to run in parallel            | `execute-tasks`                                     |
+| A PR to review                                | `pr-review`                                         |
+| A recurring stack-specific pattern to enforce | `create-skill` to author a domain skill             |
 
 ## 6. Commit
 

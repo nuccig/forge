@@ -6,7 +6,7 @@ generated from it. (Generated projects get their own `AGENTS.md` from
 
 ## What this repo is
 
-A Node TUI scaffolder (`npx create-forge`) plus the template it renders. The deliverable
+A Node TUI scaffolder (`npx @nuccig/create-forge`) plus the template it renders. The deliverable
 is **`template/`**; `scripts/config.mjs` defines the scaffold questions, derived
 variables, and exclusion rules; `scripts/scaffold.mjs` is the CLI and `scripts/render.mjs`
 renders the tree with Nunjucks (Jinja-compatible). Keep everything in `template/` free of
@@ -14,16 +14,16 @@ any specific stack, vendor, or business domain — that is the whole point.
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `scripts/config.mjs` | Scaffold questions, derived vars, exclusions. The single config source. |
-| `scripts/scaffold.mjs` | The TUI / non-interactive CLI (the `create-forge` bin). |
-| `scripts/render.mjs` | Renders `template/` → target dir (Nunjucks), strips `.jinja`. |
-| `template/` | Rendered into new projects. `*.jinja` files are templated; others are copied verbatim. |
-| `template/.agents/skills/` | **Source of truth** for skills. Edit here only. |
-| `template/.claude/`, `template/.github/` | Generated adapters. Do not hand-author skill content here. |
-| `template/tools/sync-adapters.mjs` | Rebuilds adapters from `.agents/skills/` (runs post-generation). |
-| `docs/` | forge's own documentation (not shipped into projects). |
+| Path                                     | Role                                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| `scripts/config.mjs`                     | Scaffold questions, derived vars, exclusions. The single config source.                |
+| `scripts/scaffold.mjs`                   | The TUI / non-interactive CLI (the `create-forge` bin).                                |
+| `scripts/render.mjs`                     | Renders `template/` → target dir (Nunjucks), strips `.jinja`.                          |
+| `template/`                              | Rendered into new projects. `*.jinja` files are templated; others are copied verbatim. |
+| `template/.agents/skills/`               | **Source of truth** for skills. Edit here only.                                        |
+| `template/.claude/`, `template/.github/` | Generated adapters. Do not hand-author skill content here.                             |
+| `template/tools/sync-adapters.mjs`       | Rebuilds adapters from `.agents/skills/` (runs post-generation).                       |
+| `docs/`                                  | forge's own documentation (not shipped into projects).                                 |
 
 ## Rules
 
