@@ -1,0 +1,81 @@
+---
+name: git-workflow
+description: >
+  The branch, commit, and pull-request conventions for this repo. Invoke whenever you
+  create a branch, write a commit message, or open/finish a PR. Other flows (plan,
+  execute-tasks, SDD implement) call this skill instead of restating the rules.
+---
+
+# Git workflow
+
+The single source for *how* git is done here. Branch → commit → PR → review → merge.
+**Never commit directly to the default branch.**
+
+## Branch
+
+```bash
+{% if issue_tracker != "none" -%}
+git checkout -b <type>/{{ issue_prefix | lower }}-<N>-<slug>
+{%- else -%}
+git checkout -b <type>/<slug>
+{%- endif %}
+```
+
+- **Types:** `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`, `test/`, `ci/`, `hotfix/`.
+{% if issue_tracker != "none" -%}
+- `<N>` = issue number; `<slug>` = kebab-case from the issue title, ≤ 30 chars.
+{% else -%}
+- `<slug>` = short kebab-case description of the change.
+{% endif -%}
+- One branch per unit of work. Never work on the default branch.
+
+## Commit
+
+[Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <imperative summary>
+```
+
+- Types: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`, `perf`, `ci`, `revert`.
+- Subject ≤ 72 chars, imperative mood, no trailing period.
+- The body explains **why**, not what.
+- Commit in coherent units — one per task or inseparable batch, not one giant dump.
+
+## Pull request
+
+```bash
+git push origin <branch>
+```
+
+Open the PR against the **default branch**.
+
+- **Title:** Conventional-Commit style{% if issue_tracker != "none" %}, ending with `({{ issue_prefix }}-N)`{% endif %}.
+{% if issue_tracker != "none" -%}
+- **Body:** include a line of its own — `Closes {{ issue_prefix }}-N`{% if issue_tracker == "github" %} (or `Closes #N`){% endif %}. Use `Refs {{ issue_prefix }}-N` for a partial PR that should not auto-close the issue.
+{% endif -%}
+- **Template:** fill **every** section of `.github/PULL_REQUEST_TEMPLATE.md`. Never delete a
+  section — write "N/A" when it doesn't apply.
+- Show the user the PR URL.
+
+### Draft → ready
+
+For a PR opened early as a draft (e.g. during `execute-tasks`): promoting draft → ready is
+**not** a push and does not re-trigger push-gated CI. Open it ready, or push again when you
+promote it. Drop any `WIP:` prefix and complete the template before marking ready.
+
+## Pre-PR checklist
+
+- [ ] Branch follows the naming rule; not the default branch.
+- [ ] Commits are Conventional and scoped to the work.
+- [ ] Verification passed with cited evidence (see the verify gate).
+- [ ] PR template fully filled{% if issue_tracker != "none" %}; `Closes`/`Refs` line present{% endif %}.
+
+## Anti-patterns (never)
+
+- Committing straight to the default branch.
+- A single catch-all commit for unrelated changes.
+- Opening a PR with the template half-filled or sections deleted.
+{% if issue_tracker != "none" -%}
+- A PR that closes an issue without the `Closes {{ issue_prefix }}-N` line.
+{% endif -%}

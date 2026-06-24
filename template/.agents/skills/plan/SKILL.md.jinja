@@ -51,19 +51,8 @@ is mapped.
 
 ## Step 1 — Create the branch
 
-```bash
-{% if issue_tracker != "none" -%}
-git checkout -b <type>/{{ issue_prefix | lower }}-<N>-<slug>
-{%- else -%}
-git checkout -b <type>/<slug>
-{%- endif %}
-```
-
-- Types: `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`, `test/`, `ci/`, `hotfix/`.
-{% if issue_tracker != "none" -%}
-- `<N>` = issue number; `<slug>` = kebab-case from the title, ≤ 30 chars.
-{% endif -%}
-- Never commit directly to the default branch.
+Follow the **`git-workflow`** skill for the branch convention. Never work on the default
+branch.
 
 ## Step 2 — Explore (subagent)
 
@@ -105,21 +94,12 @@ A clean run with exit 0 is the gate to Step 7.
 
 ## Step 7 — Commit
 
-[Conventional Commits](https://www.conventionalcommits.org/): `<type>(<scope>): <imperative summary>`.
-Subject ≤ 72 chars, imperative, no trailing period; the body explains *why*.
+Commit per the **`git-workflow`** skill (Conventional Commits; the body explains *why*).
 
 ## Step 8 — Pull request
 
-```bash
-git push origin <branch>
-```
-
-{% if issue_tracker != "none" -%}
-When the branch carries an issue key, the PR title must end with `({{ issue_prefix }}-N)`
-and the body must contain a `Closes {{ issue_prefix }}-N`{% if issue_tracker == "github" %}/`Closes #N`{% endif %} line on its own.
-{% endif -%}
-Fill **every** section of `.github/PULL_REQUEST_TEMPLATE.md` (never delete sections —
-use "N/A"). Open the PR against the default branch and show the user its URL.
+Push and open the PR following the **`git-workflow`** skill — its title/body/`Closes`
+rules, the full PR template, and the pre-PR checklist. Show the user the PR URL.
 
 ## Step 9 — Flag documentation impact
 

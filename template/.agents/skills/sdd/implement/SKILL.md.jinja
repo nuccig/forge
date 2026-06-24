@@ -18,7 +18,8 @@ Build the tasks under `.forge/specs/<feature-slug>/tasks/`.
   steps.
 
 The implementer never skips the controller discipline: subagents write code; the
-controller owns git, integration, and tracking.
+controller owns git, integration, and tracking. Branch, commit, and PR all follow the
+**`git-workflow`** skill.
 
 ## Verify before any "done"
 
@@ -42,4 +43,4 @@ re-verify and re-review. Default cap: 2 cycles.
 
 - Every task file is implemented and its acceptance check passes.
 - `sdd-verify` shows a clean run (exit 0) with cited output.
-- The PR is filled from the template and links the spec/issue.
+- The PR follows `git-workflow` — template filled, linked to the spec/issue.

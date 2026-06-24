@@ -60,11 +60,11 @@ subagents write disjoint files (parallel, ≤ 4)
    order. Create the native to-do list — **one entry per pending task** via `TaskCreate`
    (status `pending`). This is the live progress surface; keep each Task id mapped to its
    task. Cap 4 concurrent implementers; independent tasks **must** go parallel.
-3. **Branch.** Create one branch following the git conventions in `AGENTS.md`. Never
-   work on the default branch.
-4. **Draft PR.** Immediately after branching, open a draft PR titled `WIP: <title>`
-   against the default branch, with a per-task checklist.{% if issue_tracker != "none" %} Include the
-   `Closes` line for each child issue from the start.{% endif %} The PR stays open through
+3. **Branch.** Create one branch per the **`git-workflow`** skill. Never work on the
+   default branch.
+4. **Draft PR.** Immediately after branching, open a draft PR titled `WIP: <title>` with a
+   per-task checklist (title/body/`Closes` conventions per **`git-workflow`**).{% if issue_tracker != "none" %} Include
+   each child issue's `Closes` line from the start.{% endif %} The PR stays open through
    execution — don't wait for the end.
 5. **Parallel writes.** Subagents edit disjoint files in the **same working tree**; each
    touches only its scope. A subagent **never runs git** — only Edit/Write. All
@@ -78,8 +78,9 @@ subagents write disjoint files (parallel, ≤ 4)
    `in_progress` via `TaskUpdate` when you spawn it (whole batch for parallel spawns).
 7. **Serial integration.** The controller reviews each diff, validates evidence, resolves
    conflicts, integrates, runs verification, updates tracking, and creates an
-   **incremental commit per task** (or inseparable batch). After each commit, mark the
-   Task `completed` and update the draft PR checklist with a summary.
+   **incremental commit per task** (or inseparable batch) — commit format per
+   **`git-workflow`**. After each commit, mark the Task `completed` and update the draft PR
+   checklist with a summary.
 {% if issue_tracker != "none" -%}
 8. **Tracker per task.** Move the child issue to *In Progress* when its task starts; on
    integration (after commit + verification PASS), immediately move it to *Done* and
@@ -93,8 +94,8 @@ subagents write disjoint files (parallel, ≤ 4)
 10. **Final loop.** After fixes, re-run verification and review. Default cap: 2 automatic
     cycles; if valid issues remain, stop and report.
 {% endif -%}
-{% if include_pr_review_ai %}11{% else %}9{% endif %}. **PR ready.** With a clean review and verification PASS, flip the draft to ready,
-    drop the `WIP:` prefix, fill the full template{% if issue_tracker != "none" %}, and confirm each `Closes` line{% endif %}.
+{% if include_pr_review_ai %}11{% else %}9{% endif %}. **PR ready.** With a clean review and verification PASS, flip the draft to ready
+    following **`git-workflow`** (drop `WIP:`, full template{% if issue_tracker != "none" %}, confirm each `Closes` line{% endif %}; note the draft→ready re-trigger caveat).
 {% if include_pr_review_ai %}12{% else %}10{% endif %}. **Sentinel cleanup — always, on success or error.** Remove
     `.forge/.execute-tasks-active`, disarming restricted mode. If absent, continue
     without error.

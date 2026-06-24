@@ -94,15 +94,16 @@ node tools/sync-adapters.mjs
 - Reference **tasks**, never literal stack commands.
 
 ### Git & PRs
+The **`git-workflow`** skill is the source of truth for branch, commit, and PR
+conventions — invoke it whenever you branch, commit, or open a PR. In short:
+
 {% if issue_tracker != "none" -%}
-- **Branch:** `<type>/{{ issue_prefix | lower }}-<n>-<slug>` (e.g. `feat/{{ issue_prefix | lower }}-42-cashflow`)
-- **PR title:** `<type>(scope): description ({{ issue_prefix }}-N)`
-- **PR body:** a line of its own — `Closes {{ issue_prefix }}-N`
+- **Branch:** `<type>/{{ issue_prefix | lower }}-<n>-<slug>` (e.g. `feat/{{ issue_prefix | lower }}-42-cashflow`).
 {% else -%}
-- **Branch:** `<type>/<slug>` (e.g. `feat/cashflow-forecast`)
+- **Branch:** `<type>/<slug>` (e.g. `feat/cashflow-forecast`).
 {% endif -%}
-- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:` …).
-- **Never commit directly to the default branch.** Branch, PR, review, merge.
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/).
+- **Never commit directly to the default branch.** Branch → PR → review → merge.
 
 ### Domain skills
 When you add a stack-specific skill, declare its auto-trigger path here so every tool
