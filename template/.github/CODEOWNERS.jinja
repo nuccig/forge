@@ -1,0 +1,11 @@
+# Code owners — requested for review automatically on matching paths.
+# Replace the placeholder with real GitHub handles or teams (e.g. @org/team).
+
+{% if author_name %}# Default owner for everything:
+* @REPLACE_WITH_HANDLE   # {{ author_name }}
+{% else %}# * @your-handle
+{% endif %}
+# The agent harness — change with care:
+/AGENTS.md          @REPLACE_WITH_HANDLE
+/.agents/skills/    @REPLACE_WITH_HANDLE
+/tools/             @REPLACE_WITH_HANDLE

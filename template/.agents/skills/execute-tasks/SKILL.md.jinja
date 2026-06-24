@@ -1,0 +1,129 @@
+---
+name: execute-tasks
+description: >
+  Use when a task directory holds several pending, independently implementable task files
+  that share tracking and must land as one integration pull request. Orchestrates parallel
+  subagents over disjoint files on a single branch.
+---
+
+# Execute tasks
+
+Runs several generated task files on one branch and one PR. The core principle:
+**parallelism comes from subagents writing to disjoint files in the same working tree;
+integration, tracking, verification, review, and the PR belong to the controller.**
+
+## Fundamental law — subagents are mandatory
+
+```
+EVERY task MUST run inside a subagent (Agent tool).
+The subagent receives ONLY its disjoint file scope and the task file path.
+The controller NEVER writes implementation code directly.
+NO EXCEPTION — regardless of task size, complexity, or apparent "simplicity".
+```
+
+## Mandatory parallelism rule
+
+Parallelism is **required**, not optional. Whenever two or more pending tasks are
+disjoint — no dependency, no shared file — and none hits a Serial Lock, the controller
+**must** run them in parallel: spawn multiple subagents in a **single message** (one
+Agent block per task). Running disjoint tasks serially is forbidden. Cap: **at most 4
+implementer subagents at once**. Integration or coordination friction does **not**
+justify serializing disjoint tasks.
+
+## When to use
+
+Use when a task directory holds several pending task files, with dependencies between
+some, a need for parallelism, or a single-PR requirement. For one isolated task, just
+implement it directly under the `plan` skill instead.
+
+## Parallelism decision
+
+```
+task writes files?  ── no ──► read-only exploration
+        │ yes
+        ▼
+dependency or shared file?  ── yes ──► run serially
+        │ no
+        ▼
+subagents write disjoint files (parallel, ≤ 4)
+```
+
+## Workflow
+
+0. **Flow sentinel — first action.** Defensively remove a stale
+   `.forge/.execute-tasks-active` (guards against a prior abort), then create it (empty
+   file). Its presence arms restricted mode in the `block-controller-write` hook, which
+   blocks the controller from writing source while subagents own implementation.
+1. **Grounding.** Read the task files{% if include_sdd %}, plus `spec.md`, `plan.md`, ADRs, and any
+   workflow memory{% endif %}. On any conflict between artifacts, stop and ask.
+2. **Planning.** List pending tasks, likely files, dependencies, locks, and execution
+   order. Create the native to-do list — **one entry per pending task** via `TaskCreate`
+   (status `pending`). This is the live progress surface; keep each Task id mapped to its
+   task. Cap 4 concurrent implementers; independent tasks **must** go parallel.
+3. **Branch.** Create one branch following the git conventions in `AGENTS.md`. Never
+   work on the default branch.
+4. **Draft PR.** Immediately after branching, open a draft PR titled `WIP: <title>`
+   against the default branch, with a per-task checklist.{% if issue_tracker != "none" %} Include the
+   `Closes` line for each child issue from the start.{% endif %} The PR stays open through
+   execution — don't wait for the end.
+5. **Parallel writes.** Subagents edit disjoint files in the **same working tree**; each
+   touches only its scope. A subagent **never runs git** — only Edit/Write. All
+   integration (serial git add/commit, conflict resolution, verification) is the
+   controller's. Collisions are impossible because file scopes don't overlap; Serial Locks
+   cover the rest.
+6. **Execution — mandatory subagents.** For each task (or parallel batch), spawn a
+   subagent via the Agent tool. Parallel tasks: **multiple Agent blocks in one message**
+   (≤ 4). Serial tasks: one block at a time, await return. Each subagent prompt carries
+   the absolute task file path, the branch, and its disjoint file list. Mark each Task
+   `in_progress` via `TaskUpdate` when you spawn it (whole batch for parallel spawns).
+7. **Serial integration.** The controller reviews each diff, validates evidence, resolves
+   conflicts, integrates, runs verification, updates tracking, and creates an
+   **incremental commit per task** (or inseparable batch). After each commit, mark the
+   Task `completed` and update the draft PR checklist with a summary.
+{% if issue_tracker != "none" -%}
+8. **Tracker per task.** Move the child issue to *In Progress* when its task starts; on
+   integration (after commit + verification PASS), immediately move it to *Done* and
+   comment with evidence (files changed, test result). Don't batch — each task closes its
+   issue at completion. The tracker is the source of truth for progress.
+{% endif -%}
+{% if include_pr_review_ai -%}
+9. **Final review.** After all tasks integrate, run `pr-review` in a subagent. Any valid
+   issue — including low/medium — goes through remediation in subagents; the controller
+   only orchestrates.
+10. **Final loop.** After fixes, re-run verification and review. Default cap: 2 automatic
+    cycles; if valid issues remain, stop and report.
+{% endif -%}
+{% if include_pr_review_ai %}11{% else %}9{% endif %}. **PR ready.** With a clean review and verification PASS, flip the draft to ready,
+    drop the `WIP:` prefix, fill the full template{% if issue_tracker != "none" %}, and confirm each `Closes` line{% endif %}.
+{% if include_pr_review_ai %}12{% else %}10{% endif %}. **Sentinel cleanup — always, on success or error.** Remove
+    `.forge/.execute-tasks-active`, disarming restricted mode. If absent, continue
+    without error.
+
+## Quick reference
+
+| Decision | Rule |
+| --- | --- |
+| Task execution | Subagent mandatory — controller never writes code |
+| Concurrency | ≤ 4 implementer subagents at once |
+| Parallel spawn | Required: multiple Agent blocks in one message when tasks are disjoint |
+| Serial spawn | One Agent block at a time on dependency / shared file |
+| Parallel writes | Disjoint files, same working tree; subagent never runs git |
+| Integration & tracking | Controller only |
+| Progress | Native to-do (`TaskCreate` per task; `TaskUpdate` on spawn/integrate) |
+| Commits | One per task or inseparable batch; incremental |
+| PR | Draft from branch; checklist per task; ready only on clean review |
+
+## Serial Locks
+
+Run serially when tasks touch: shared schema/migrations, security/auth, shared types, or
+the same files. Do schema → API → UI in order, never in parallel.
+
+## Red flags (stop and re-apply the workflow)
+
+- "This task is simple, I'll just implement it." — Subagent mandatory for **every** task.
+- "I already have the context, no subagent needed." — Subagent mandatory. No exception.
+- "Serial is safer even without a dependency." — Disjoint tasks **must** run parallel (≤ 4).
+- "The subagent said DONE, so it's complete." — That's a report; the controller verifies
+  the diff, tests, and tracking.
+- "I'll open the PR only when everything's done." — Draft from the start.
+- "I'll let the subagent commit." — Subagents never run git; only the controller integrates.

@@ -1,0 +1,64 @@
+# Integrations
+
+The harness works standalone, but light up more when an issue tracker and git host are
+wired. Every integration **degrades gracefully**: if the connection is missing, skills
+keep working and only the status-sync side effects drop off.
+
+## Issue tracker — {{ issue_tracker }}
+
+{% if issue_tracker == "linear" -%}
+Work is tracked in **Linear**. Conventions:
+
+- Non-trivial work starts as a Linear issue.
+- Branch: `<type>/{{ issue_prefix | lower }}-<n>-<slug>`.
+- PR title ends with `({{ issue_prefix }}-N)`; PR body has a `Closes {{ issue_prefix }}-N` line.
+- Plan/SDD skills pull the issue, execute, and move its status.
+
+**Degradation:** without the Linear MCP connected, the skills skip status updates —
+code, branch, and PR still happen; you move the issue by hand.
+{%- elif issue_tracker == "github" -%}
+Work is tracked in **GitHub Issues**. Conventions:
+
+- Non-trivial work starts as an issue.
+- Branch: `<type>/{{ issue_prefix | lower }}-<n>-<slug>`.
+- PR title ends with `({{ issue_prefix }}-N)`; PR body has a `Closes #N` line so merge
+  closes the issue.
+
+**Degradation:** without API access, the skills skip issue reads/writes — the local
+flow (branch → commit → PR) is unaffected.
+{%- else -%}
+No issue tracker is configured. The plan and SDD flows run **local-only**:
+branch → commit → PR, with no external status sync. To add one later, set
+`issue_tracker` and re-run `copier update`.
+{%- endif %}
+
+## Git host — {{ git_host }}
+
+{% if git_host == "github" -%}
+Pull requests target **GitHub**. CI runs via `.github/workflows/`.
+{% if include_pr_review_ai -%}
+The AI PR-review workflow (`pr-review.yml`) posts inline review comments on PRs against
+the default branch — assistive, not a merge gate.
+{% endif -%}
+{%- elif git_host == "gitlab" -%}
+Merge requests target **GitLab**. Port the workflow definitions in `.github/workflows/`
+to `.gitlab-ci.yml` — the task seam (`{{ task_runner }}`) is unchanged, so only the CI
+wrapper differs.
+{%- else -%}
+No git host is configured. Adapt the CI definitions under `.github/workflows/` to your
+host; they only ever call task-runner recipes, so the port is mechanical.
+{%- endif %}
+
+## Agent surface
+
+Adapters are generated for every supported tool regardless of `primary_agent`
+({{ primary_agent }}):
+
+| Tool | Entry point |
+| --- | --- |
+| Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` |
+| Codex / Cursor / Gemini / Aider / Zed | `AGENTS.md` (native) |
+| GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/` |
+
+Keep `AGENTS.md` as the single source; regenerate adapters with
+`{% if task_runner == 'just' %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}`.

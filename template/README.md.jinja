@@ -1,0 +1,68 @@
+# {{ project_name }}
+
+{% if project_description %}{{ project_description }}
+
+{% endif %}Scaffolded with [forge](https://github.com/nuccig/forge) — a tool-agnostic agent harness.
+
+## Agent harness
+
+This repo ships an AI-agent setup that works across tools. The contract every agent reads
+is **[`AGENTS.md`](AGENTS.md)** — start there.
+
+| Tool | Entry point |
+| --- | --- |
+| Claude Code | `.claude/CLAUDE.md` (imports `AGENTS.md`) + `.claude/skills/` |
+| Codex / Cursor / Gemini / Aider / Zed | `AGENTS.md` (native) |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+
+### The one rule that keeps it portable
+
+Skills and CI never name your stack — they call **tasks**. The {{ task_runner }} file is the
+only place real commands live:
+
+```bash
+{% if task_runner == "just" %}just verify   # lint + typecheck + test{% elif task_runner == "make" %}make verify   # lint + typecheck + test{% elif task_runner == "npm" %}npm run verify   # lint + typecheck + test{% else %}# define lint / typecheck / test / build commands{% endif %}
+```
+
+### Skills
+
+Skills are reusable agent know-how. The source of truth is **`.agents/skills/`**; the
+`.claude/` and `.github/` copies are generated. After editing a skill:
+
+```bash
+{% if task_runner == "just" %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}
+```
+
+Catalog: [`.agents/skills/README.md`](.agents/skills/README.md).
+
+### Workflows
+
+- **`plan`** — a focused, single-PR change (grills you first).
+{% if include_sdd -%}
+- **SDD pipeline** (`spec → plan → tasks → implement`) — features with real decisions.
+  See [`docs/sdd-workflow.md`](docs/sdd-workflow.md).
+- **`execute-tasks`** — run generated tasks in parallel, one integration PR.
+{% endif -%}
+{% if include_pr_review_ai -%}
+- **`pr-review`** — multi-dimension review of a pull request.
+{% endif -%}
+- **`create-skill`** — author a domain skill for your stack.
+
+## Getting started
+
+1. Wire the {{ task_runner }} file so `verify` actually runs your stack.
+2. Point your agent at the repo (see the table above).
+3. Pick a workflow and go.
+
+Pull later harness improvements with `copier update`.
+
+## Development
+
+```bash
+{% if task_runner == "just" %}just            # list tasks
+just verify     # lint + typecheck + test{% elif task_runner == "make" %}make verify     # lint + typecheck + test{% elif task_runner == "npm" %}npm run verify  # lint + typecheck + test{% else %}# run your configured lint / typecheck / test{% endif %}
+```
+
+## License
+
+{% if license == "proprietary" %}Proprietary — all rights reserved.{% else %}[{{ license }}](LICENSE){% endif %}

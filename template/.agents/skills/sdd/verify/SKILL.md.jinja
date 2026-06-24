@@ -1,0 +1,63 @@
+---
+name: sdd-verify
+description: >
+  Enforces fresh verification evidence before any completion, fix, or passing claim, and
+  before commits or PRs. Use when about to report success, hand off, or commit. Do not use
+  during early planning or brainstorming.
+---
+
+# SDD · Verify
+
+The gate. No claim of success, no commit, no PR without **fresh** evidence from this run.
+
+## The rule
+
+> "Should pass" / "it works" / "looks good" **without cited output = a violation.**
+
+A claim is valid only when you can cite, from the current state of the code:
+
+- the command you ran,
+- its output, and
+- exit code 0 with zero errors (and zero warnings where the project treats warnings as
+  errors).
+
+Re-run the **full** pipeline after **any** fix before repeating a claim. Stale evidence
+from before a change does not count.
+
+## Pipeline
+
+```bash
+{% if task_runner == "just" -%}
+just verify        # lint + typecheck + test
+{% if e2e_cmd %}just e2e           # when the change touched runtime paths ({{ runtime_paths }})
+{% endif -%}
+{%- elif task_runner == "make" -%}
+make verify        # lint + typecheck + test
+{% if e2e_cmd %}make e2e           # when the change touched runtime paths ({{ runtime_paths }})
+{% endif -%}
+{%- elif task_runner == "npm" -%}
+npm run verify     # lint + typecheck + test
+{% if e2e_cmd %}npm run e2e        # when the change touched runtime paths ({{ runtime_paths }})
+{% endif -%}
+{%- else -%}
+# run lint + typecheck + test, then e2e if runtime paths ({{ runtime_paths }}) changed
+{%- endif %}
+```
+
+{% if e2e_cmd -%}
+Check what changed before deciding on E2E:
+
+```bash
+git diff --name-only <default-branch>...HEAD
+```
+
+If a changed path matches `{{ runtime_paths }}`, the E2E suite **must** be green before any
+"done". If not, skip E2E **explicitly** with a one-line justification naming the paths
+touched. Same path criterion as CI — parity by review.
+
+{% endif -%}
+## Definition of done
+
+- The full pipeline was run **after** the last change.
+- Output is cited; exit code is 0; error/warning counts are zero.
+- Only then may you commit, hand off, or report success.

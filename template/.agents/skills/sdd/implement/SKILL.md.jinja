@@ -1,0 +1,45 @@
+---
+name: sdd-implement
+description: >
+  Stage 4 of Spec-Driven Development. Executes the task files end-to-end — verified,
+  reviewed, merged. Use when task files exist and need to be built. Do not use for
+  spec/plan/tasks authoring.
+---
+
+# SDD · Implement
+
+Build the tasks under `.forge/specs/<feature-slug>/tasks/`.
+
+## How
+
+- **Several tasks** → hand off to the `execute-tasks` skill: one branch, parallel
+  subagents over disjoint files, one integration PR.
+- **A single task** → implement it directly under the `plan` skill's execute/verify
+  steps.
+
+The implementer never skips the controller discipline: subagents write code; the
+controller owns git, integration, and tracking.
+
+## Verify before any "done"
+
+Always run `sdd-verify` (the fresh-evidence gate) before claiming completion, committing,
+or opening the PR:
+
+```bash
+{% if task_runner == "just" %}just verify{% elif task_runner == "make" %}make verify{% elif task_runner == "npm" %}npm run verify{% else %}# run lint + typecheck + test{% endif %}
+```
+
+No "should pass" without cited output. Re-run after every fix.
+
+{% if include_pr_review_ai -%}
+## Review loop
+
+After integration, run `pr-review`; remediate every valid issue via `sdd-fix-review`;
+re-verify and re-review. Default cap: 2 cycles.
+
+{% endif -%}
+## Definition of done
+
+- Every task file is implemented and its acceptance check passes.
+- `sdd-verify` shows a clean run (exit 0) with cited output.
+- The PR is filled from the template and links the spec/issue.

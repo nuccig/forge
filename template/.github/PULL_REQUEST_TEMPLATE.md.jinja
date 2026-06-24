@@ -1,0 +1,40 @@
+## Description
+
+<!-- What was implemented, fixed, or changed — and why (not just what). -->
+
+## Type of change
+
+- [ ] `feat` — new feature
+- [ ] `fix` — bug fix
+- [ ] `chore` — maintenance / deps / config
+- [ ] `refactor` — no behavior change
+- [ ] `docs` — documentation
+- [ ] `ci` — pipeline
+- [ ] `perf` — performance
+- [ ] `revert` — revert a previous change
+
+## Related issue
+
+<!-- {% if issue_tracker == "github" %}"Closes #N" or "Relates to #N"{% elif issue_tracker == "linear" %}"Closes {{ issue_prefix }}-N" on its own line{% else %}Link any related issue, or N/A{% endif %} -->
+
+## Checklist
+
+### Quality
+- [ ] Lint passes (`{% if task_runner == "just" %}just lint{% elif task_runner == "make" %}make lint{% elif task_runner == "npm" %}npm run lint{% else %}lint{% endif %}`)
+- [ ] Type check passes (`{% if task_runner == "just" %}just typecheck{% elif task_runner == "make" %}make typecheck{% elif task_runner == "npm" %}npm run typecheck{% else %}typecheck{% endif %}`)
+- [ ] Tests pass (`{% if task_runner == "just" %}just test{% elif task_runner == "make" %}make test{% elif task_runner == "npm" %}npm run test{% else %}test{% endif %}`)
+- [ ] No debug logging left in production code
+
+### Tests
+- [ ] Tests added/updated for new surface (happy path + at least one error case)
+
+### Security
+- [ ] No secrets or credentials in the diff
+- [ ] Inputs validated; authorization enforced where applicable
+
+## How to test
+
+<!-- Steps to validate this change manually. -->
+
+1.
+2.

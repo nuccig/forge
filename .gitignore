@@ -1,0 +1,22 @@
+# forge template repo — keep it lean.
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Copier / Python tooling (if used to build/test the template)
+__pycache__/
+*.pyc
+.venv/
+.copier-answers.yml
+
+# Local render output from manual template testing
+/.render-test/
+/.render-*/
+/tmp/
+
+# Node (sync tooling deps, if any)
+node_modules/

@@ -1,0 +1,171 @@
+---
+name: pr-review
+description: >
+  Use ONLY when explicitly asked to review a pull request — "review PR #N", "review this
+  PR", "code review". Coordinates parallel review subagents across dimensions and
+  consolidates the findings. Do NOT trigger automatically during coding, feature work, or
+  general questions.
+---
+
+# PR review — orchestration protocol
+
+Coordinates specialized review subagents (via the Agent tool) and consolidates their
+findings into one summary. Each subagent loads the **domain skill** that governs the files
+it touches — this skill does not duplicate that content.
+
+## Step 1 — Initialize
+
+1. Get the PR number from context, or ask the user.
+{% if git_host == "github" -%}
+2. Identify the repo: `gh repo view --json nameWithOwner -q .nameWithOwner`.
+3. Fetch the diff: `gh pr diff {PR}`.
+4. Load existing inline comments (`gh api repos/{REPO}/pulls/{PR}/comments`) into a
+   `{path, line}` set to avoid reposting.
+5. Read PR intent: `gh pr view {PR} --json title,body,headRefName`.
+6. Get the head SHA: `gh pr view {PR} --json headRefOid -q .headRefOid`.
+{%- else -%}
+2. Fetch the diff and the PR metadata (title, body, head branch, head SHA) via your git
+   host's CLI or API.
+3. Load existing inline comments into a `{path, line}` set to avoid reposting.
+{%- endif %}
+{% if issue_tracker != "none" %}7. Extract the tracker key from the branch name (pattern `{{ issue_prefix }}-[0-9]+`).{% endif %}
+
+## Step 2 — Launch subagents in parallel
+
+Send **one message** with all subagent calls (Agent tool) — simultaneous. Pass each one
+the repo, PR number, diff, existing comments, PR intent, and head SHA. When all complete,
+run Step 3.
+
+## Severity labels (all subagents)
+
+- 🚨 **Critical** — bugs or logic errors that will cause failures.
+- 🔒 **Security** — vulnerabilities or data exposure.
+- ⚠️ **Warning** — code smells or maintainability problems.
+- 💡 **Suggestion** — optional improvements.
+
+## Universal rules (every subagent)
+
+1. **Comment only on added lines** — diff lines starting with `+` (excluding `+++`).
+2. **Skip duplicates** — if a `{path, line}` within ±3 lines already has a comment, skip.
+3. **Mark resolved** — reply `[RESOLVED] Appears fixed by recent changes.` on existing
+   comments whose problem is now fixed.
+4. **≥ 80% confidence** — report only when confident; skip when unsure.
+5. **One positive highlight** before listing problems.
+6. **Tone:** specific, actionable, collegial — explain *why* it's a problem.
+7. **Never** approve, request-changes, or modify files — comment only.
+8. **Marker:** start every inline comment with `<!-- ai-review:{type} -->` (invisible in
+   rendered view), so consolidation can parse it.
+
+Prefer the GitHub MCP (`pull_request_review_write`) for posting; {% if git_host == "github" %}fall back to `gh api
+repos/{REPO}/pulls/{PR}/comments` with `commit_id`, `path`, `line`{% else %}otherwise use your host's review API{% endif %}.
+
+---
+
+## Subagent 1 — Security
+**Marker:** `<!-- ai-review:security -->`
+
+Load any domain skill whose trigger covers security/auth files. Review the diff for:
+secrets or service credentials leaking to client code; endpoints missing the project's
+auth/authorization gate; missing input validation before data access; injection;
+overly-permissive access rules (multi-tenant isolation removed); unsafe headers/CORS.
+
+**Second pass:** re-read the full diff, list every uncommented file, and for each ask "does
+this violate a security rule?" Skip only when you can say explicitly why it's clean.
+
+## Subagent 2 — Requirements & Definition of Done
+**Marker:** `<!-- ai-review:requirements -->` · posts **one PR-level comment** (no inline).
+
+{% if issue_tracker != "none" -%}
+**Track A — tracker issue:** extract the key (`{{ issue_prefix }}-N`) from the branch;
+fetch its title, description, and acceptance criteria.
+**Track B — spec files:** check `.forge/specs/<slug>/` (spec.md, plan.md, tasks) and the PR
+body for spec references.
+Merge whatever has content; note the source of each item. If neither exists, post
+"⚠️ No tracker issue or spec found — requirements check skipped." and stop.
+{%- else -%}
+Read the PR body and any `.forge/specs/<slug>/` artifacts (spec.md, plan.md, tasks) for
+the intended behavior. If none exist, post "⚠️ No spec found — requirements check skipped."
+and stop.
+{%- endif %}
+
+Assess each acceptance criterion against the diff: ✅ implemented, ❌ missing, 🔲 in the
+Definition of Done but unverified.
+
+## Subagent 3 — Test coverage
+**Marker:** `<!-- ai-review:testing -->`
+
+Load the project's testing domain skill (if any). Flag: new public surface (endpoint,
+module) with no corresponding test; modified unit with a previously-existing test now gone;
+mock anti-patterns; weakened assertions; missing error-path coverage.
+
+**Second pass:** list each new/modified unit with no test and ask "is there coverage for
+the happy path + at least one error case?" Skip only with explicit justification.
+
+## Subagent 4 — Architecture & conventions
+**Marker:** `<!-- ai-review:architecture -->`
+
+**Phase 0:** load `AGENTS.md` (anti-patterns, conventions) and every domain skill whose
+trigger path matches a file in the diff.
+**Phase 1:** extract the explicit rules and anti-patterns from those documents into a
+matrix.
+**Phase 2:** evaluate each file against each applicable rule — PASS / VIOLATION / N/A. N/A
+only when a rule is structurally inapplicable to that file type.
+
+**Second pass:** list unevaluated files and re-apply the matrix. Cite the violating line and
+the source rule in each comment.
+
+## Subagent 5 — Regression & hallucination
+**Marker:** `<!-- ai-review:regression -->`
+
+Review for changes unrelated to the PR's goal or signs of AI-generated artifacts:
+unrelated deletions, phantom imports of symbols that don't exist, wrong-signature calls,
+leftover `TODO`s, type assertions hiding compiler errors, duplicated logic that already
+exists, weakened error handling or test assertions, dead code, unused imports.
+
+**Second pass:** list uncommented files and ask "unrelated deletions, phantom imports,
+duplicated logic, or weakened assertions?" Skip only with explicit justification.
+
+---
+
+## Step 3 — Consolidation
+
+Launch one more subagent to consolidate:
+
+1. Fetch all inline comments; keep those starting with `<!-- ai-review: -->`; parse the type.
+2. Fetch PR-level comments for `<!-- ai-review:requirements -->`.
+3. Group by severity: 🔒 Security → 🚨 Critical → ⚠️ Warning → 💡 Suggestion.
+4. Deduplicate findings at the same `{path, line}` (±3 lines).
+5. Collect one positive highlight per subagent.
+6. **Gap detection:** list changed files; cross-reference against commented paths. Logic
+   files with no comment go under `### 🔍 Files with no inline comments` (omit config/lock
+   and pure-type files).
+7. Post the summary as a PR-level comment.
+
+**Summary format:**
+
+```markdown
+## 🤖 AI Review Summary
+
+| | |
+|---|---|
+| **Subagents** | {N} (Security · Requirements · Tests · Architecture · Regression) |
+| **Findings** | {N} across {M} files |
+
+### 🔒 Security ({N})
+### 🚨 Critical ({N})
+### ⚠️ Warnings ({N})
+### 💡 Suggestions ({N})
+
+### 🔍 Files with no inline comments
+- `path` — no findings (verify manually or re-run a targeted review)
+
+### ✅ Highlights
+- {one per subagent}
+
+> See inline comments for detail and recommendations.
+```
+
+If nothing is found across all subagents, post "✅ No issues found across all review
+dimensions." with the metadata table still included.
+
+> Note: this review is **assistive, not a merge gate** — the required gate is CI.

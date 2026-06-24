@@ -1,0 +1,141 @@
+# AGENTS.md — {{ project_name }}
+
+{% if project_description %}{{ project_description }}
+
+{% endif %}This file is the **canonical contract** for every coding agent working in this
+repository. It follows the [AGENTS.md](https://agents.md) convention and is read
+natively by Codex, Cursor, Gemini, Aider, Zed, and others. Claude Code reads it via
+the `@AGENTS.md` import at the top of `.claude/CLAUDE.md`; GitHub Copilot via
+`.github/copilot-instructions.md`. **One source, many tools** — edit this file, not
+the adapters.
+
+> Talk to humans in **{{ artifact_language }}**. Write code, commits, identifiers,
+> and skill bodies in **English**.
+
+---
+
+## Build, test, and verify
+
+Never hard-code stack commands in skills, CI, or your own reasoning. Invoke **tasks**;
+the {{ task_runner }} file is the single place real commands live.
+
+{% if task_runner == "just" -%}
+```bash
+just lint        # static lint
+just typecheck   # type / static analysis
+just test        # unit tests
+just build       # production build
+just verify      # lint + typecheck + test (the pre-commit gate)
+```
+{%- elif task_runner == "make" -%}
+```bash
+make lint
+make typecheck
+make test
+make build
+make verify      # lint + typecheck + test (the pre-commit gate)
+```
+{%- elif task_runner == "npm" -%}
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run verify   # lint + typecheck + test (the pre-commit gate)
+```
+{%- else -%}
+This project declares no task runner. Define the commands for lint, typecheck, test,
+and build in your README and keep them consistent — skills reference them by role,
+not by literal command.
+{%- endif %}
+
+All three checks (lint, typecheck, test) must pass before any commit — this mirrors CI.
+
+---
+
+## How to work here
+
+| Situation | Flow |
+| --- | --- |
+| A focused change (1 PR, a handful of files) | the **plan** skill — it grills you before touching code |
+{% if include_sdd -%}
+| A feature with real architectural decisions | the **SDD pipeline**: `spec → plan → tasks → implement` |
+| Several generated tasks to run together | **execute-tasks** (one integration PR) |
+{% endif -%}
+{% if include_pr_review_ai -%}
+| Reviewing a pull request | the **pr-review** skill |
+{% endif -%}
+| A recurring stack pattern worth enforcing | **create-skill** — author a domain skill |
+| A choice the user should own | the **decision-making** skill — ask, don't assume |
+
+Skills live in `.agents/skills/` (source of truth). After editing one, regenerate the
+adapters:
+
+{% if task_runner == "just" -%}
+```bash
+just sync-adapters
+```
+{%- else -%}
+```bash
+node tools/sync-adapters.mjs
+```
+{%- endif %}
+
+`docs/` explains each flow in depth.
+
+---
+
+## Conventions
+
+### Skills
+- `description` is the trigger — make it precise about *when* to load.
+- Lead skill bodies with the mandatory pipeline; list anti-patterns explicitly.
+- Reference **tasks**, never literal stack commands.
+
+### Git & PRs
+{% if issue_tracker != "none" -%}
+- **Branch:** `<type>/{{ issue_prefix | lower }}-<n>-<slug>` (e.g. `feat/{{ issue_prefix | lower }}-42-cashflow`)
+- **PR title:** `<type>(scope): description ({{ issue_prefix }}-N)`
+- **PR body:** a line of its own — `Closes {{ issue_prefix }}-N`
+{% else -%}
+- **Branch:** `<type>/<slug>` (e.g. `feat/cashflow-forecast`)
+{% endif -%}
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:` …).
+- **Never commit directly to the default branch.** Branch, PR, review, merge.
+
+### Domain skills
+When you add a stack-specific skill, declare its auto-trigger path here so every tool
+sees the mapping. (Use **create-skill** — it wires the adapters and updates the catalog.)
+
+<!-- DOMAIN-SKILLS:START — create-skill maintains this table -->
+| Skill | Triggers on | Enforces |
+| --- | --- | --- |
+<!-- DOMAIN-SKILLS:END -->
+
+---
+
+## Anti-patterns (never)
+
+- Hard-coding stack commands where a **task** belongs.
+- Editing `.claude/skills/` or `.github/instructions/` by hand — they are generated.
+- Putting stack/vendor/domain names in `AGENTS.md` boilerplate meant to stay portable.
+- Committing straight to the default branch, or opening a PR without the template filled.
+- Assuming a decision the user should make — use **decision-making**.
+
+---
+
+## Integrations
+
+{% if issue_tracker == "linear" -%}
+Issues live in **Linear**. Non-trivial work starts as an issue; plan/SDD flows pull it,
+execute, and update status. Without the Linear MCP connected, the skills degrade
+gracefully — code proceeds, status stays manual.
+{%- elif issue_tracker == "github" -%}
+Issues live in **GitHub Issues**. Non-trivial work starts as an issue; plan/SDD flows
+reference it and close it from the PR. Without access, the skills degrade gracefully.
+{%- else -%}
+No issue tracker is wired. Plan/SDD flows run local-only: branch → commit → PR, no
+status sync.
+{%- endif %}
+
+See `docs/integrations.md` for details and graceful-degradation rules.

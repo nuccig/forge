@@ -1,0 +1,19 @@
+# {{ project_name }} — GitHub Copilot instructions
+
+> **Source of truth: [`AGENTS.md`](../AGENTS.md).**
+>
+> This file is a pointer. The full agent contract — build/test tasks, workflows, and
+> conventions — lives in `AGENTS.md` at the repo root. Read it first.
+>
+> Per-skill guidance lives in `.github/instructions/*.instructions.md` (generated redirect
+> stubs that point back to `.agents/skills/`). Do not edit those by hand — run
+> `{% if task_runner == "just" %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}` to regenerate them.
+
+## Essentials
+
+- Talk to humans in **{{ artifact_language }}**; write code and commits in English.
+- Invoke build steps as **tasks**, never hard-coded stack commands. See `AGENTS.md`.
+- Never commit directly to the default branch — branch, PR, review, merge.
+- Fill the PR template completely.
+
+For anything beyond these essentials, defer to `AGENTS.md` and the skill instructions.

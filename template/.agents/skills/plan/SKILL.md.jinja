@@ -1,0 +1,128 @@
+---
+name: plan
+description: >
+  End-to-end planning flow for a focused change — branch, explore, design, wait for
+  approval, execute, verify, commit, open a PR. Use when the user asks to plan,
+  implement, or start any non-trivial feature, fix, or refactor that fits in a single PR.
+---
+
+# Planning workflow
+
+Follow the steps **in order** for the task: $ARGUMENTS
+
+## Principles
+
+- **The user decides.** Ask before acting when behavior is ambiguous, when there are
+  design trade-offs, when scope reads more than one way, or when the impact on other
+  parts of the system is non-obvious. (See the `decision-making` skill.)
+- **Don't ask** when the answer is in the code, in these instructions, or in a
+  documented convention.
+- Talk to the user in the project's human language; write code and commits in English.
+
+## Step 0 — Scale check (mandatory, before branching)
+
+Confirm this is a single-PR change. If it carries real architectural decisions or spans
+multiple PRs, stop and{% if include_sdd %} switch to the **SDD pipeline** (`spec → plan → tasks →
+implement` — see `docs/sdd-workflow.md`){% else %} propose breaking it into a sequence of smaller PRs{% endif %}.
+**Never assume scale — ask the user.**
+
+{% if issue_tracker != "none" -%}
+## Step 0.5 — Link the issue
+
+Link the work to a tracker issue before branching:
+
+- **Known key:** the user passes it (e.g. `{{ issue_prefix }}-42`). Pull its title,
+  description, and labels to use as exploration context.
+- **Picker:** with no key, list open issues ordered by priority and let the user choose.
+- **No tracker access:** warn the user, offer to continue local-only (commit/PR proceed,
+  status stays manual). Do not block.
+
+After choosing: move the issue to *In Progress*; derive a kebab-case `<slug>` (≤ 30 chars)
+from its title; remember `issue_key = {{ issue_prefix }}-N` and `slug`.
+
+{% endif -%}
+## Step {% if issue_tracker != "none" %}0.7{% else %}0.5{% endif %} — Mandatory grilling
+
+Always invoke the `grill-me` skill before presenting the plan — regardless of how
+obvious or trivial the task looks. The model is not a reliable judge of "ambiguity";
+grilling surfaces hidden assumptions before any code is written. It asks one question
+at a time, so trivial fixes wind down fast. Don't pad it — stop when the decision space
+is mapped.
+
+## Step 1 — Create the branch
+
+```bash
+{% if issue_tracker != "none" -%}
+git checkout -b <type>/{{ issue_prefix | lower }}-<N>-<slug>
+{%- else -%}
+git checkout -b <type>/<slug>
+{%- endif %}
+```
+
+- Types: `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`, `test/`, `ci/`, `hotfix/`.
+{% if issue_tracker != "none" -%}
+- `<N>` = issue number; `<slug>` = kebab-case from the title, ≤ 30 chars.
+{% endif -%}
+- Never commit directly to the default branch.
+
+## Step 2 — Explore (subagent)
+
+Launch a read-only **Explore** subagent to map the context: existing types/contracts,
+files directly related to the task, similar patterns already in the codebase, and the
+blast radius of the change. It must not modify anything — only map what exists and what
+must change.
+
+## Step 3 — Design (subagent)
+
+With the findings, launch a **Plan** subagent to design the solution:
+
+1. List concrete changes (files to create/edit) as numbered tasks.
+2. For each file, identify which **domain skill** applies (match the skill's trigger
+   path in `.agents/skills/`). Those skills carry the mandatory pipeline and
+   anti-patterns for that area.
+
+## Step 4 — Present the plan and wait for approval
+
+Present: the numbered task list, files to be created/modified, relevant design
+decisions, and any open questions. **Wait for explicit approval before executing.**
+
+## Step 5 — Execute
+
+Implement each task following the domain skill that governs its files. If a behavior
+question surfaces mid-execution, **pause and ask the user**.
+
+## Step 6 — Verify
+
+```bash
+{% if task_runner == "just" %}just verify{% elif task_runner == "make" %}make verify{% elif task_runner == "npm" %}npm run verify{% else %}# run lint + typecheck + test{% endif %}
+```
+
+Fix **every** error. {% if e2e_cmd %}If the change touched runtime paths (`{{ runtime_paths }}`),
+also run `{% if task_runner == "just" %}just e2e{% elif task_runner == "make" %}make e2e{% else %}the e2e suite{% endif %}` and require it green; otherwise skip E2E explicitly with a one-line
+justification naming the paths touched. {% endif %}**No "should pass" / "it works" without
+cited output** — re-run the full pipeline after any fix before repeating a success claim.
+A clean run with exit 0 is the gate to Step 7.
+
+## Step 7 — Commit
+
+[Conventional Commits](https://www.conventionalcommits.org/): `<type>(<scope>): <imperative summary>`.
+Subject ≤ 72 chars, imperative, no trailing period; the body explains *why*.
+
+## Step 8 — Pull request
+
+```bash
+git push origin <branch>
+```
+
+{% if issue_tracker != "none" -%}
+When the branch carries an issue key, the PR title must end with `({{ issue_prefix }}-N)`
+and the body must contain a `Closes {{ issue_prefix }}-N`{% if issue_tracker == "github" %}/`Closes #N`{% endif %} line on its own.
+{% endif -%}
+Fill **every** section of `.github/PULL_REQUEST_TEMPLATE.md` (never delete sections —
+use "N/A"). Open the PR against the default branch and show the user its URL.
+
+## Step 9 — Flag documentation impact
+
+Check whether the change affects `AGENTS.md`, a domain skill, or the README. **Do not
+auto-edit** — list what needs updating, describe the change, and wait for explicit
+approval.

@@ -1,0 +1,92 @@
+# CI — {{ project_name }}
+# Calls task-runner recipes only; the stack lives in the {{ task_runner }} file, not here.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+{%- if task_runner == "just" %}
+      - uses: extractions/setup-just@v2
+{%- endif %}
+      # TODO: set up your language/runtime and install dependencies here.
+      - name: Lint
+        run: {% if task_runner == "just" %}just lint{% elif task_runner == "make" %}make lint{% elif task_runner == "npm" %}npm ci && npm run lint{% else %}{{ lint_cmd or "echo 'configure lint'" }}{% endif %}
+
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+{%- if task_runner == "just" %}
+      - uses: extractions/setup-just@v2
+{%- endif %}
+      - name: Type check
+        run: {% if task_runner == "just" %}just typecheck{% elif task_runner == "make" %}make typecheck{% elif task_runner == "npm" %}npm ci && npm run typecheck{% else %}{{ typecheck_cmd or "echo 'configure typecheck'" }}{% endif %}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+{%- if task_runner == "just" %}
+      - uses: extractions/setup-just@v2
+{%- endif %}
+      - name: Test
+        run: {% if task_runner == "just" %}just test{% elif task_runner == "make" %}make test{% elif task_runner == "npm" %}npm ci && npm run test{% else %}{{ test_cmd or "echo 'configure test'" }}{% endif %}
+
+{% if e2e_cmd -%}
+  detect-changes:
+    name: Detect runtime changes
+    runs-on: ubuntu-latest
+    permissions: { contents: read, pull-requests: read }
+    outputs:
+      e2e: {% raw %}${{ steps.filter.outputs.e2e }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # Mirrors runtime_paths — keep in sync with the verify skill.
+          filters: |
+            e2e:
+{%- for glob in runtime_paths.split(",") %}
+              - '{{ glob | trim }}'
+{%- endfor %}
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, detect-changes]
+    if: needs.detect-changes.outputs.e2e == 'true'
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+{%- if task_runner == "just" %}
+      - uses: extractions/setup-just@v2
+{%- endif %}
+      - name: E2E
+        run: {% if task_runner == "just" %}just e2e{% elif task_runner == "make" %}make e2e{% elif task_runner == "npm" %}npm ci && npm run e2e{% else %}{{ e2e_cmd }}{% endif %}
+
+{% endif -%}
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+{%- if task_runner == "just" %}
+      - uses: extractions/setup-just@v2
+{%- endif %}
+      - name: Build
+        run: {% if task_runner == "just" %}just build{% elif task_runner == "make" %}make build{% elif task_runner == "npm" %}npm ci && npm run build{% else %}{{ build_cmd or "echo 'configure build'" }}{% endif %}

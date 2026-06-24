@@ -1,0 +1,40 @@
+---
+id: 0001
+title: Record architecture decisions
+status: accepted
+date: {{ year }}
+---
+
+# ADR-0001 — Record architecture decisions
+
+## Context
+
+We need a durable, reviewable record of the significant technical choices made in this
+project — the ones that are expensive to reverse and easy to forget the reasoning behind.
+Decisions buried in chat logs or PR threads get lost.
+
+## Decision
+
+We will keep **Architecture Decision Records** (ADRs) in `docs/adr/`, one Markdown file per
+decision, numbered sequentially (`0001`, `0002`, …). Each ADR states its context, the
+decision, the alternatives considered, and the consequences. The format is small on
+purpose — see this file's frontmatter and headings as the template.
+
+ADRs are immutable once `accepted`. To change a decision, write a new ADR that supersedes
+the old one (set the old one's status to `superseded`).
+
+{% if include_sdd -%}
+The SDD pipeline's `sdd-plan` stage emits feature-scoped ADRs under
+`.forge/specs/<feature>/adr/`; promote any that become project-wide into this directory.
+{% endif -%}
+
+## Alternatives considered
+
+- **No formal record** — decisions live in PRs and memory. Rejected: not discoverable.
+- **A single decisions document** — one growing file. Rejected: poor diff/review locality.
+
+## Consequences
+
+- New significant decisions get a numbered file here, reviewed like code.
+- Newcomers (human or agent) can read `docs/adr/` to understand *why* the system is shaped
+  the way it is.

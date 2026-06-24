@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+{%- if task_runner == "just" %}
+      "Bash(just *)",
+{%- elif task_runner == "make" %}
+      "Bash(make *)",
+{%- elif task_runner == "npm" %}
+      "Bash(npm run *)",
+{%- endif %}
+      "Bash(node tools/sync-adapters.mjs*)",
+      "Bash(node .claude/hooks/*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git stash:*)"
+{%- if git_host == "github" %},
+      "mcp__github__pull_request_read",
+      "mcp__github__create_pull_request",
+      "mcp__github__update_pull_request"
+{%- endif %}
+{%- if issue_tracker == "linear" %},
+      "mcp__linear-server__get_issue",
+      "mcp__linear-server__list_issues",
+      "mcp__linear-server__save_issue",
+      "mcp__linear-server__save_comment"
+{%- endif %}
+    ],
+    "deny": []
+  }{% if include_hooks %},
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-controller-write.mjs"
+          }
+        ]
+      }
+    ]
+  }{% endif %}
+}

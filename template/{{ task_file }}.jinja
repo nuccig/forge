@@ -1,0 +1,81 @@
+{% if task_runner == "just" -%}
+# {{ project_name }} — task runner (the stack-agnostic seam).
+#
+# Skills, CI, and AGENTS.md call these recipes by ROLE. This file is the only place
+# real stack commands appear — swap the bodies and the whole harness follows.
+#
+#   just            # list recipes
+#   just verify     # the pre-commit gate (lint + typecheck + test)
+
+# Show available recipes.
+default:
+    @just --list
+
+# Static lint.
+lint:
+{% if lint_cmd %}    {{ lint_cmd }}{% else %}    @echo "no lint command configured — edit the justfile"{% endif %}
+
+# Type / static analysis.
+typecheck:
+{% if typecheck_cmd %}    {{ typecheck_cmd }}{% else %}    @echo "no typecheck command configured — edit the justfile"{% endif %}
+
+# Unit tests.
+test:
+{% if test_cmd %}    {{ test_cmd }}{% else %}    @echo "no test command configured — edit the justfile"{% endif %}
+
+# Production build.
+build:
+{% if build_cmd %}    {{ build_cmd }}{% else %}    @echo "no build command configured — edit the justfile"{% endif %}
+
+{% if e2e_cmd -%}
+# End-to-end tests.
+e2e:
+    {{ e2e_cmd }}
+
+{% endif -%}
+# The pre-commit gate — mirrors CI. Everything must pass before you commit.
+verify: lint typecheck test
+
+# Rebuild .claude/ and .github/ adapters from .agents/skills/ (source of truth).
+sync-adapters:
+    node tools/sync-adapters.mjs
+{%- elif task_runner == "make" -%}
+# {{ project_name }} — task runner (the stack-agnostic seam).
+# Skills, CI, and AGENTS.md call these targets by ROLE. Only place real commands live.
+.PHONY: lint typecheck test build {% if e2e_cmd %}e2e {% endif %}verify sync-adapters
+
+lint:
+{% if lint_cmd %}	{{ lint_cmd }}{% else %}	@echo "no lint command configured — edit the Makefile"{% endif %}
+
+typecheck:
+{% if typecheck_cmd %}	{{ typecheck_cmd }}{% else %}	@echo "no typecheck command configured — edit the Makefile"{% endif %}
+
+test:
+{% if test_cmd %}	{{ test_cmd }}{% else %}	@echo "no test command configured — edit the Makefile"{% endif %}
+
+build:
+{% if build_cmd %}	{{ build_cmd }}{% else %}	@echo "no build command configured — edit the Makefile"{% endif %}
+
+{% if e2e_cmd -%}
+e2e:
+	{{ e2e_cmd }}
+
+{% endif -%}
+verify: lint typecheck test
+
+sync-adapters:
+	node tools/sync-adapters.mjs
+{%- else -%}
+# This project uses npm scripts as its task runner. The harness expects these scripts
+# in package.json — keep the names stable; skills and CI reference them by role:
+#
+#   "lint":          "{{ lint_cmd or 'echo no lint configured' }}",
+#   "typecheck":     "{{ typecheck_cmd or 'echo no typecheck configured' }}",
+#   "test":          "{{ test_cmd or 'echo no test configured' }}",
+#   "build":         "{{ build_cmd or 'echo no build configured' }}",
+{% if e2e_cmd %}#   "e2e":           "{{ e2e_cmd }}",
+{% endif %}#   "verify":        "npm run lint && npm run typecheck && npm run test",
+#   "sync-adapters": "node tools/sync-adapters.mjs"
+#
+# (This placeholder file documents the contract; delete it once package.json is wired.)
+{%- endif %}
