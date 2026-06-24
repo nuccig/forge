@@ -211,22 +211,83 @@ and Copilot surfaces update together. This is enforced, not a convention.
 
 ## Requirements
 
-- [Copier](https://copier.readthedocs.io) ≥ 9 — `pipx install copier` (or `uv tool install copier`).
-- **Node ≥ 18** — used by `tools/sync-adapters.mjs` and the optional guard hook.
-- A task runner if you want `just`/`make` ergonomics (`just` recommended). `npm`
-  and plain shell also work.
+| Tool | Why | Minimum |
+| --- | --- | --- |
+| [Copier](https://copier.readthedocs.io) | Renders + updates the template | ≥ 9 (needs Python ≥ 3.9) |
+| Node | Runs `tools/sync-adapters.mjs` and the optional guard hook | ≥ 18 |
+| A task runner | `just`/`make` ergonomics (`just` recommended) | optional — `npm` / shell work too |
 
 ---
 
-## Quick start
+## Installation
+
+### 1. Install the prerequisites
+
+<details open>
+<summary><strong>Unix / macOS</strong></summary>
 
 ```bash
-# Scaffold a new project (interactive prompts)
+# --- Copier (pick ONE) ---
+pipx install copier                 # recommended (isolated CLI)
+# python3 -m pip install --user copier
+# uv tool install copier
+
+# If pipx is missing:
+#   python3 -m pip install --user pipx && python3 -m pipx ensurepath   # then restart the shell
+
+# --- Node ≥ 18 (skip if already installed) ---
+# via nvm:
+#   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+#   nvm install --lts
+# or:  macOS: brew install node   |   Debian/Ubuntu: sudo apt install nodejs
+
+# --- Optional task runner ---
+brew install just                   # macOS
+# Debian/Ubuntu: sudo apt install just   (or: cargo install just)
+
+# --- Verify ---
+copier --version && node --version
+```
+</details>
+
+<details>
+<summary><strong>Windows (PowerShell)</strong></summary>
+
+```powershell
+# --- Copier (pick ONE) ---
+pipx install copier                 # recommended (isolated CLI)
+# python -m pip install --user copier
+# uv tool install copier
+
+# If pipx is missing:
+#   python -m pip install --user pipx ; python -m pipx ensurepath   # then restart PowerShell
+
+# --- Node ≥ 18 and optional task runner (skip if already installed) ---
+winget install OpenJS.NodeJS.LTS
+winget install Casey.Just           # the `just` task runner (optional)
+
+# --- Verify ---
+copier --version ; node --version
+```
+
+> If `copier` isn't found after install, its scripts dir isn't on `PATH`. pipx fixes
+> this with `pipx ensurepath` (restart the shell). For a `pip --user` install, add
+> `%APPDATA%\Python\Python3xx\Scripts` to `PATH`.
+</details>
+
+### 2. Scaffold a project
+
+```bash
+# Render the template (interactive prompts: name, primary agent, task runner, …)
 copier copy gh:nuccig/forge ./my-project
 cd my-project
+```
 
-# Edit the justfile so the task commands match your stack, then:
-just sync-adapters     # (re)generate tool adapters from .agents/skills
+### 3. Wire it up and commit
+
+```bash
+# Edit the justfile so the task commands match your stack, then regenerate adapters:
+just sync-adapters                  # or, without just: node tools/sync-adapters.mjs
 git init && git add -A && git commit -m "chore: scaffold from forge"
 ```
 
