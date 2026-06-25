@@ -23,7 +23,7 @@ export const groups = {
   identity: { title: "Identity", objective: "Names used in README, LICENSE, CODEOWNERS, and branch/PR prefixes." },
   agent: { title: "Agent surface", objective: "Which agent leads (decides which adapter ships) and the human language it speaks." },
   integrations: { title: "Integrations", objective: "Issue tracker + git host. They light up status sync; pick 'none' to stay local-only." },
-  tasks: { title: "Task runner (the stack-agnostic seam)", objective: "How skills and CI run commands. You can leave the commands blank and fill the runner file later." },
+  tasks: { title: "Task runner (the stack-agnostic seam)", objective: "Which runner file to generate. The real lint/test/build commands get filled by the fg-bootstrap skill after scaffolding — not here." },
   features: { title: "Optional features", objective: "Toggle parts of the harness on or off." },
   meta: { title: "License", objective: "Legal terms for the generated project." },
 };
@@ -102,12 +102,10 @@ export const questions = [
       { value: "none", label: "none — documented shell commands" },
     ],
   },
-  { group: "tasks", name: "lint_cmd", type: "text", message: "Lint command (blank = skipped)", hint: "e.g. eslint . / ruff check .", initial: () => "" },
-  { group: "tasks", name: "typecheck_cmd", type: "text", message: "Typecheck command (blank = skipped)", hint: "e.g. tsc --noEmit / mypy .", initial: () => "" },
-  { group: "tasks", name: "test_cmd", type: "text", message: "Test command (blank = skipped)", hint: "e.g. vitest run / pytest / go test ./...", initial: () => "" },
-  { group: "tasks", name: "build_cmd", type: "text", message: "Build command (blank = skipped)", hint: "e.g. next build / go build ./...", initial: () => "" },
-  { group: "tasks", name: "e2e_cmd", type: "text", message: "E2E command (blank = skipped)", hint: "e.g. playwright test", initial: () => "" },
-  { group: "tasks", name: "runtime_paths", type: "text", message: "Globs that gate E2E/runtime checks in CI (comma-separated)", hint: "e.g. src/**,app/**", initial: () => "src/**" },
+  // The real lint/typecheck/test/build/e2e commands and runtime globs are NOT prompted
+  // here — the post-scaffold `fg-bootstrap` skill interviews for them and wires the runner
+  // file. They are defaulted in computeContext so templates render; `--set` still overrides
+  // (e.g. `--set test_cmd="vitest run" --set runtime_paths="app/**"`).
 
   // ── Optional features ──
   { group: "features", name: "include_sdd", type: "confirm", message: "Include the SDD pipeline (spec → plan → tasks → implement → review → verify)?", initial: () => true },
@@ -140,6 +138,14 @@ export function computeContext(answers) {
   ctx.include_claude = ["claude", "multi"].includes(ctx.primary_agent);
   ctx.include_copilot = ["copilot", "multi"].includes(ctx.primary_agent);
   ctx.year = String(new Date().getFullYear());
+  // Task commands + runtime globs moved out of the TUI into the fg-bootstrap interview.
+  // Default them so every template renders; `--set` (non-interactive) still wins via spread.
+  ctx.lint_cmd ??= "";
+  ctx.typecheck_cmd ??= "";
+  ctx.test_cmd ??= "";
+  ctx.build_cmd ??= "";
+  ctx.e2e_cmd ??= "";
+  ctx.runtime_paths = ctx.runtime_paths || "src/**";
   return ctx;
 }
 
@@ -157,7 +163,7 @@ export function isExcluded(relPath, ctx) {
   if (underAny(".git")) return true;
 
   if (!ctx.include_sdd && (underAny(".agents/skills/sdd") || p === "docs/sdd-workflow.md")) return true;
-  if (!ctx.include_pr_review_ai && (underAny(".agents/skills/pr-review") || p === ".github/workflows/pr-review.yml")) return true;
+  if (!ctx.include_pr_review_ai && (underAny(".agents/skills/fg-pr-review") || p === ".github/workflows/pr-review.yml")) return true;
   if (!ctx.include_hooks && underAny(".claude/hooks")) return true;
   if (!ctx.include_claude && underAny(".claude")) return true;
   if (!ctx.include_copilot && (p === ".github/copilot-instructions.md" || underAny(".github/instructions"))) return true;

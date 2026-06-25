@@ -21,13 +21,13 @@ the plan stage's job.
 ## Process
 
 1. **Frame.** Restate the problem in one or two sentences. Confirm with the user.
-2. **Brainstorm interactively.** Ask one question at a time (lean on `grill-me`). Drive
+2. **Brainstorm interactively.** Ask one question at a time (lean on `fg-grill-me`). Drive
    toward: the user/job to be done, the scope boundary (what's explicitly **out**), and
    the acceptance criteria. Explore the codebase to ground answers instead of asking what
    the code already tells you.
 3. **Research where it helps.** Pull prior art from the codebase and, when useful,
    external references — but the spec stays solution-agnostic.
-4. **Write `spec.md`** using `references/spec-template.md`.
+4. **Write `spec.md`** using `../references/spec-template.md`.
 
 ## Definition of done
 

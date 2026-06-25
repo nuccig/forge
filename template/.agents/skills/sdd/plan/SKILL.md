@@ -20,14 +20,15 @@ decision as an ADR.
 
 ## Process
 
-1. **Read the spec.** Do not re-open settled scope; if the spec is ambiguous, return to
-   `sdd-spec`.
+1. **Read the spec — and `docs/adr/`.** Honor the project-wide stack decisions already
+   recorded there (seeded by `fg-bootstrap`); don't relitigate them. Do not re-open settled
+   scope; if the spec is ambiguous, return to `sdd-spec`.
 2. **Design.** Lay out the components, data shapes, contracts, and integration points.
    Reference **tasks** (`just test`, …) not literal stack commands.
 3. **Clarify trade-offs interactively.** For each fork with no obvious winner, ask the
-   user (use `decision-making`). Record the resolved choice — with the alternatives
-   considered and the consequences — as an ADR using `references/adr-template.md`.
-4. **Write `plan.md`** using `references/plan-template.md`, linking each ADR.
+   user (use `fg-decision-making`). Record the resolved choice — with the alternatives
+   considered and the consequences — as an ADR using `../references/adr-template.md`.
+4. **Write `plan.md`** using `../references/plan-template.md`, linking each ADR.
 
 ## Definition of done
 

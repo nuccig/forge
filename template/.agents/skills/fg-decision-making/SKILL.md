@@ -1,5 +1,5 @@
 ---
-name: decision-making
+name: fg-decision-making
 description: >
   Apply when a task involves design, architecture, schema, or UI-behavior decisions, or
   a choice between equivalent alternatives the user should own. Prevents assuming choices

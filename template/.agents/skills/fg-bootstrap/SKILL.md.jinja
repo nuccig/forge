@@ -1,0 +1,70 @@
+---
+name: fg-bootstrap
+description: >
+  Run once right after scaffolding, before feature work — interview the user to pin this
+  project's stack, runtime, and conventions, record each as an ADR in docs/adr/, and wire
+  the {{ task_file }} so the verify gate runs. Use when the harness is fresh or
+  unconfigured. Do not use for feature specs (that's sdd-spec) or per-feature technical
+  design (that's sdd-plan).
+---
+
+# Bootstrap the harness
+
+The scaffold ships a deliberately bare, stack-agnostic harness — no stack, no commands, no
+domain rules. This skill configures it for *this* project: it grills you on the
+foundational choices, records each as an ADR in `docs/adr/`, and wires the {{ task_file }}
+so the verify gate actually runs your stack.
+
+Run it **once, early**. The other flows — `fg-plan`, `sdd-plan`, `fg-create-skill` — read
+`docs/adr/` to ground their work, so the sharper this interview, the smarter every later
+flow. It replaces cramming stack questions into the scaffolder: install stays short, the
+real decisions happen here, in context, with you in the loop.
+
+## Principles
+
+- **The user decides.** One question at a time (lean on `fg-grill-me`); give a recommended
+  answer with each (see `fg-decision-making`). Walk the dependency tree — earlier choices
+  (runtime, app shape) constrain later ones (deploy, jobs, auth).
+- **Explore before asking.** If an inspiration or sibling repo exists, read it for prior
+  art; never ask what the code already answers.
+- **Decisions, not implementation.** Capture *what* the stack is and *why* — no code yet.
+
+## Process
+
+1. **Frame.** Restate the project's purpose and hard constraints in a sentence or two;
+   confirm with the user.
+2. **Grill the foundations** — one at a time, recommend each, stop when the space is mapped
+   (skip what doesn't apply):
+   - **Runtime & language** — primary language(s) and version.
+   - **Application shape** — single app, monorepo, or separate services / worker.
+   - **Data & storage** — datastore(s), migrations, where state lives.
+   - **Auth & tenancy** — who logs in, roles, isolation model (if any).
+   - **Deploy target** — where it runs (VPS / PaaS / serverless) and how it ships.
+   - **Background work** — jobs, queues, schedules — or none.
+   - **Task commands** — the real `lint`, `typecheck`, `test`, `build`, and optional `e2e`
+     commands for the stack, plus the globs that gate runtime / E2E checks (`runtime_paths`).
+   - **Conventions worth enforcing** — naming, logging, error handling — anything a future
+     domain skill (`fg-create-skill`) should encode.
+3. **Record each settled cluster as an ADR.** Write `docs/adr/NNNN-<decision-slug>.md`
+   (numbered after the existing `0001`), using
+   `docs/adr/0001-record-architecture-decisions.md` as the format — context, decision,
+   alternatives considered, consequences. Status `accepted`. One decision per file.
+4. **Wire the task runner.** Fill the {{ task_file }} with the commands settled above so
+   `{% if task_runner == "just" %}just verify{% elif task_runner == "make" %}make verify{% elif task_runner == "npm" %}npm run verify{% else %}the verify gate{% endif %}` runs for real — no placeholder echoes left for roles you configured.{% if task_runner != "none" %} Then regenerate adapters: `{% if task_runner == "just" %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}`.{% endif %}
+{% if issue_tracker != "none" -%}
+5. **Confirm integration values.** Verify the tracker prefix (`{{ issue_prefix }}`) and host
+   match reality; note any correction as an ADR or an `AGENTS.md` edit.
+{% endif -%}
+{% if issue_tracker == "none" %}5{% else %}6{% endif %}. **Surface contract changes.** If a decision changes how *every* agent should work,
+   propose the `AGENTS.md` edit — don't silently rewrite it.
+
+## Definition of done
+
+- The foundational decisions are ADRs in `docs/adr/` (status `accepted`), each with its
+  alternatives and consequences.
+- The {{ task_file }} runs the real verify gate — no placeholder commands for configured roles.
+- The user has confirmed the stack. Point to the next step: **`fg-plan`** for the first
+  focused change, or **`sdd-spec`** to open a larger feature.
+
+Write ADRs and talk to the user in the project's human language; keep frontmatter,
+identifiers, and skill references in English.

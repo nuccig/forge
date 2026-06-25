@@ -55,7 +55,7 @@ export function decide({ toolName, filePath }) {
     return {
       decision: "block",
       reason:
-        `Controller writes are blocked in restricted mode (execute-tasks active). ` +
+        `Controller writes are blocked in restricted mode (fg-execute-tasks active). ` +
         `Delegate the write to the implementer subagent. Path: ${filePath}`,
     };
   } catch (err) {

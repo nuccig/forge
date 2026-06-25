@@ -1,5 +1,5 @@
 ---
-name: execute-tasks
+name: fg-execute-tasks
 description: >
   Use when a task directory holds several pending, independently implementable task files
   that share tracking and must land as one integration pull request. Orchestrates parallel
@@ -34,7 +34,7 @@ justify serializing disjoint tasks.
 
 Use when a task directory holds several pending task files, with dependencies between
 some, a need for parallelism, or a single-PR requirement. For one isolated task, just
-implement it directly under the `plan` skill instead.
+implement it directly under the `fg-plan` skill instead.
 
 ## Parallelism decision
 
@@ -60,10 +60,10 @@ subagents write disjoint files (parallel, ≤ 4)
    order. Create the native to-do list — **one entry per pending task** via `TaskCreate`
    (status `pending`). This is the live progress surface; keep each Task id mapped to its
    task. Cap 4 concurrent implementers; independent tasks **must** go parallel.
-3. **Branch.** Create one branch per the **`git-workflow`** skill. Never work on the
+3. **Branch.** Create one branch per the **`fg-git-workflow`** skill. Never work on the
    default branch.
 4. **Draft PR.** Immediately after branching, open a draft PR titled `WIP: <title>` with a
-   per-task checklist (title/body/`Closes` conventions per **`git-workflow`**).{% if issue_tracker != "none" %} Include
+   per-task checklist (title/body/`Closes` conventions per **`fg-git-workflow`**).{% if issue_tracker != "none" %} Include
    each child issue's `Closes` line from the start.{% endif %} The PR stays open through
    execution — don't wait for the end.
 5. **Parallel writes.** Subagents edit disjoint files in the **same working tree**; each
@@ -79,7 +79,7 @@ subagents write disjoint files (parallel, ≤ 4)
 7. **Serial integration.** The controller reviews each diff, validates evidence, resolves
    conflicts, integrates, runs verification, updates tracking, and creates an
    **incremental commit per task** (or inseparable batch) — commit format per
-   **`git-workflow`**. After each commit, mark the Task `completed` and update the draft PR
+   **`fg-git-workflow`**. After each commit, mark the Task `completed` and update the draft PR
    checklist with a summary.
 {% if issue_tracker != "none" -%}
 8. **Tracker per task.** Move the child issue to *In Progress* when its task starts; on
@@ -88,14 +88,14 @@ subagents write disjoint files (parallel, ≤ 4)
    issue at completion. The tracker is the source of truth for progress.
 {% endif -%}
 {% if include_pr_review_ai -%}
-9. **Final review.** After all tasks integrate, run `pr-review` in a subagent. Any valid
+9. **Final review.** After all tasks integrate, run `fg-pr-review` in a subagent. Any valid
    issue — including low/medium — goes through remediation in subagents; the controller
    only orchestrates.
 10. **Final loop.** After fixes, re-run verification and review. Default cap: 2 automatic
     cycles; if valid issues remain, stop and report.
 {% endif -%}
 {% if include_pr_review_ai %}11{% else %}9{% endif %}. **PR ready.** With a clean review and verification PASS, flip the draft to ready
-    following **`git-workflow`** (drop `WIP:`, full template{% if issue_tracker != "none" %}, confirm each `Closes` line{% endif %}; note the draft→ready re-trigger caveat).
+    following **`fg-git-workflow`** (drop `WIP:`, full template{% if issue_tracker != "none" %}, confirm each `Closes` line{% endif %}; note the draft→ready re-trigger caveat).
 {% if include_pr_review_ai %}12{% else %}10{% endif %}. **Sentinel cleanup — always, on success or error.** Remove
     `.forge/.execute-tasks-active`, disarming restricted mode. If absent, continue
     without error.

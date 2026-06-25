@@ -23,6 +23,10 @@ purpose — see this file's frontmatter and headings as the template.
 ADRs are immutable once `accepted`. To change a decision, write a new ADR that supersedes
 the old one (set the old one's status to `superseded`).
 
+The **fg-bootstrap** skill seeds this directory with the project's foundational stack
+decisions right after scaffolding; later flows (`fg-plan`, `sdd-plan`, `fg-create-skill`)
+read them to stay consistent.
+
 {% if include_sdd -%}
 The SDD pipeline's `sdd-plan` stage emits feature-scoped ADRs under
 `.forge/specs/<feature>/adr/`; promote any that become project-wide into this directory.

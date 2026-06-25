@@ -41,22 +41,24 @@ Catalog: [`.agents/skills/README.md`](.agents/skills/README.md).
 
 ### Workflows
 
-- **`plan`** — a focused, single-PR change (grills you first).
+- **`fg-bootstrap`** — configure a fresh scaffold: interview your stack into ADRs + a wired runner. Run it first.
+- **`fg-plan`** — a focused, single-PR change (grills you first).
 {% if include_sdd -%}
 - **SDD pipeline** (`spec → plan → tasks → implement`) — features with real decisions.
   See [`docs/sdd-workflow.md`](docs/sdd-workflow.md).
-- **`execute-tasks`** — run generated tasks in parallel, one integration PR.
+- **`fg-execute-tasks`** — run generated tasks in parallel, one integration PR.
 {% endif -%}
 {% if include_pr_review_ai -%}
-- **`pr-review`** — multi-dimension review of a pull request.
+- **`fg-pr-review`** — multi-dimension review of a pull request.
 {% endif -%}
-- **`create-skill`** — author a domain skill for your stack.
+- **`fg-create-skill`** — author a domain skill for your stack.
 
 ## Getting started
 
-1. Wire the {{ task_runner }} file so `verify` actually runs your stack.
-2. Point your agent at the repo (see the table above).
-3. Pick a workflow and go.
+1. Point your agent at the repo (see the table above).
+2. Run the **`fg-bootstrap`** skill — it interviews you, records your stack as ADRs, and
+   wires the {{ task_runner }} file so `verify` runs.
+3. Pick a workflow (`fg-plan` for a focused change) and go.
 
 This repo was generated from [forge](https://github.com/nuccig/forge); pull later harness
 improvements by re-scaffolding into a scratch directory and merging what you want.

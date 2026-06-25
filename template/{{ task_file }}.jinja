@@ -4,6 +4,9 @@
 # Skills, CI, and AGENTS.md call these recipes by ROLE. This file is the only place
 # real stack commands appear — swap the bodies and the whole harness follows.
 #
+# The recipes below are placeholders — run the fg-bootstrap skill to fill them from a
+# short interview, or edit by hand.
+#
 #   just            # list recipes
 #   just verify     # the pre-commit gate (lint + typecheck + test)
 
@@ -42,6 +45,7 @@ sync-adapters:
 {%- elif task_runner == "make" -%}
 # {{ project_name }} — task runner (the stack-agnostic seam).
 # Skills, CI, and AGENTS.md call these targets by ROLE. Only place real commands live.
+# Targets below are placeholders — run the fg-bootstrap skill to fill them, or edit by hand.
 .PHONY: lint typecheck test build {% if e2e_cmd %}e2e {% endif %}verify sync-adapters
 
 lint:
@@ -67,7 +71,8 @@ sync-adapters:
 	node tools/sync-adapters.mjs
 {%- else -%}
 # This project uses npm scripts as its task runner. The harness expects these scripts
-# in package.json — keep the names stable; skills and CI reference them by role:
+# in package.json — keep the names stable; skills and CI reference them by role.
+# Run the fg-bootstrap skill to settle the commands below, or fill them by hand:
 #
 #   "lint":          "{{ lint_cmd or 'echo no lint configured' }}",
 #   "typecheck":     "{{ typecheck_cmd or 'echo no typecheck configured' }}",

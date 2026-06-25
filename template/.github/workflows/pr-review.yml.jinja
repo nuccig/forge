@@ -1,5 +1,5 @@
 # AI PR review — {{ project_name }}
-# Assistive, NOT a merge gate (the gate is ci.yml). Runs the multi-subagent `pr-review`
+# Assistive, NOT a merge gate (the gate is ci.yml). Runs the multi-subagent `fg-pr-review`
 # skill and posts inline comments. Cost-gated: code paths only, skips drafts and the
 # `skip-ai-review` label, and does not re-run on push (synchronize).
 name: PR Review
@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 0
       # Wire your agent runner here (e.g. the Claude Code GitHub Action) and point it at
-      # the `pr-review` skill. It must run with comment-only permissions — never approve,
+      # the `fg-pr-review` skill. It must run with comment-only permissions — never approve,
       # request-changes, or modify files.
-      - name: Run pr-review skill
-        run: echo "Configure your agent runner to execute the pr-review skill on PR #{% raw %}${{ github.event.pull_request.number }}{% endraw %}"
+      - name: Run fg-pr-review skill
+        run: echo "Configure your agent runner to execute the fg-pr-review skill on PR #{% raw %}${{ github.event.pull_request.number }}{% endraw %}"

@@ -8,7 +8,7 @@ description: >
 
 # SDD · Tasks
 
-Decompose `plan.md` into numbered task files that `execute-tasks` (or the `plan` skill)
+Decompose `plan.md` into numbered task files that `fg-execute-tasks` (or the `fg-plan` skill)
 can run.
 
 ## Output location
@@ -25,10 +25,10 @@ can run.
    is unavoidable (schema → API → UI), state the dependency explicitly so the executor
    serializes it (a Serial Lock).
 3. **Declare disjoint file scope.** For each task, list the files it owns. Disjoint
-   scopes are what let `execute-tasks` run tasks in parallel.
+   scopes are what let `fg-execute-tasks` run tasks in parallel.
 4. **Enrich.** Explore the codebase and add the concrete context each task needs:
    patterns to follow, the domain skill that governs its files, acceptance checks.
-5. **Write each task** using `references/task-template.md`, numbered `001`, `002`, ….
+5. **Write each task** using `../references/task-template.md`, numbered `001`, `002`, ….
 
 ## Definition of done
 

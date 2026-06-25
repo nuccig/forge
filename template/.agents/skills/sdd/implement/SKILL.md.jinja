@@ -12,14 +12,14 @@ Build the tasks under `.forge/specs/<feature-slug>/tasks/`.
 
 ## How
 
-- **Several tasks** → hand off to the `execute-tasks` skill: one branch, parallel
+- **Several tasks** → hand off to the `fg-execute-tasks` skill: one branch, parallel
   subagents over disjoint files, one integration PR.
-- **A single task** → implement it directly under the `plan` skill's execute/verify
+- **A single task** → implement it directly under the `fg-plan` skill's execute/verify
   steps.
 
 The implementer never skips the controller discipline: subagents write code; the
 controller owns git, integration, and tracking. Branch, commit, and PR all follow the
-**`git-workflow`** skill.
+**`fg-git-workflow`** skill.
 
 ## Verify before any "done"
 
@@ -35,7 +35,7 @@ No "should pass" without cited output. Re-run after every fix.
 {% if include_pr_review_ai -%}
 ## Review loop
 
-After integration, run `pr-review`; remediate every valid issue via `sdd-fix-review`;
+After integration, run `fg-pr-review`; remediate every valid issue via `sdd-fix-review`;
 re-verify and re-review. Default cap: 2 cycles.
 
 {% endif -%}
@@ -43,4 +43,4 @@ re-verify and re-review. Default cap: 2 cycles.
 
 - Every task file is implemented and its acceptance check passes.
 - `sdd-verify` shows a clean run (exit 0) with cited output.
-- The PR follows `git-workflow` — template filled, linked to the spec/issue.
+- The PR follows `fg-git-workflow` — template filled, linked to the spec/issue.

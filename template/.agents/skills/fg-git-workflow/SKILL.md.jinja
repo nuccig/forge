@@ -1,9 +1,9 @@
 ---
-name: git-workflow
+name: fg-git-workflow
 description: >
   The branch, commit, and pull-request conventions for this repo. Invoke whenever you
-  create a branch, write a commit message, or open/finish a PR. Other flows (plan,
-  execute-tasks, SDD implement) call this skill instead of restating the rules.
+  create a branch, write a commit message, or open/finish a PR. Other flows (fg-plan,
+  fg-execute-tasks, SDD implement) call this skill instead of restating the rules.
 ---
 
 # Git workflow
@@ -60,7 +60,7 @@ Open the PR against the **default branch**.
 
 ### Draft → ready
 
-For a PR opened early as a draft (e.g. during `execute-tasks`): promoting draft → ready is
+For a PR opened early as a draft (e.g. during `fg-execute-tasks`): promoting draft → ready is
 **not** a push and does not re-trigger push-gated CI. Open it ready, or push again when you
 promote it. Drop any `WIP:` prefix and complete the template before marking ready.
 

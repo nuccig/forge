@@ -12,12 +12,13 @@ Markdown body) and optional `references/` loaded on demand. The `description` is
 
 | Skill | Use when |
 | --- | --- |
-| `plan` | A focused, single-PR change — grills, then branch → execute → verify → PR. |
-| `grill-me` | Stress-testing a plan or design before writing code. |
-| `decision-making` | A choice the user should own — ask, don't assume. |
-| `git-workflow` | Branch / commit / PR conventions — invoked by `plan`, `execute-tasks`, SDD. |
-| `execute-tasks` | Several independent task files → parallel subagents, one PR. |
-| `create-skill` | Authoring a new **domain** skill for your stack. |
+| `fg-bootstrap` | A freshly scaffolded harness — interview the stack into ADRs + a wired runner. |
+| `fg-plan` | A focused, single-PR change — grills, then branch → execute → verify → PR. |
+| `fg-grill-me` | Stress-testing a plan or design before writing code. |
+| `fg-decision-making` | A choice the user should own — ask, don't assume. |
+| `fg-git-workflow` | Branch / commit / PR conventions — invoked by `fg-plan`, `fg-execute-tasks`, SDD. |
+| `fg-execute-tasks` | Several independent task files → parallel subagents, one PR. |
+| `fg-create-skill` | Authoring a new **domain** skill for your stack. |
 {% if include_sdd -%}
 | `sdd-spec` → `sdd-plan` → `sdd-tasks` → `sdd-implement` | The SDD pipeline (see `docs/sdd-workflow.md`). |
 | `sdd-review` / `sdd-fix-review` | Review round and remediation. |
@@ -25,10 +26,10 @@ Markdown body) and optional `references/` loaded on demand. The `description` is
 | `sdd-memory` | Durable, feature-scoped context across sessions. |
 {% endif -%}
 {% if include_pr_review_ai -%}
-| `pr-review` | Multi-dimension review of a pull request. |
+| `fg-pr-review` | Multi-dimension review of a pull request. |
 {% endif %}
 
-## Domain skills (yours, generated with `create-skill`)
+## Domain skills (yours, generated with `fg-create-skill`)
 
 Stack-specific guardrails live here too, once you author them. They trigger by path and
 should also be listed in the `AGENTS.md` domain table. None ship by default — the harness

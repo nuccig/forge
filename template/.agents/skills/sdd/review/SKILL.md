@@ -27,7 +27,7 @@ Audit the implementation of a feature and emit a structured review round. This s
 1. **Scope.** Read the spec, plan, ADRs, and the diff under review.
 2. **Review across dimensions:** correctness, security, the project's domain rules
    (the governing domain skills), tests, and clarity.
-3. **Write one file per issue** using `references/review-issue-template.md`, each with a
+3. **Write one file per issue** using `../references/review-issue-template.md`, each with a
    severity (`critical` / `high` / `medium` / `low`), the location, the problem, and a
    suggested fix.
 4. **Summarize** the round: counts per severity, and whether it blocks.

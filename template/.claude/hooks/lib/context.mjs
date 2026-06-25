@@ -2,7 +2,7 @@
  * context.mjs — shared sentinel logic for Claude Code hooks.
  *
  * Two sentinel files in .forge/ determine the hook behaviour:
- *   MARKER      — created by the `execute-tasks` skill at flow start; presence = restricted mode.
+ *   MARKER      — created by the `fg-execute-tasks` skill at flow start; presence = restricted mode.
  *   AGENT_FLAG  — created by the implementer subagent as its first step; presence = subagent write authorised.
  *
  * Rule (PreToolUse block-controller-write):

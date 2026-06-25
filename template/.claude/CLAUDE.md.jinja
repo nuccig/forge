@@ -18,14 +18,14 @@ They auto-trigger by their `description`. After editing a skill in `.agents/skil
 
 | Agent | Role |
 | --- | --- |
-| `plan` | Thin wrapper over the `plan` skill (the source of truth). |
-| `executor-task` | Implementer for `execute-tasks` — restricted tools (no git), writes only its disjoint scope. |
+| `fg-plan` | Thin wrapper over the `fg-plan` skill (the source of truth). |
+| `executor-task` | Implementer for `fg-execute-tasks` — restricted tools (no git), writes only its disjoint scope. |
 
 {% if include_hooks -%}
 ## Hooks
 
 A PreToolUse hook (`.claude/hooks/block-controller-write.mjs`) guards against the controller
-writing source while `execute-tasks` is active and subagents own implementation. It is
+writing source while `fg-execute-tasks` is active and subagents own implementation. It is
 **fail-open** (any error allows the write) and gated by the `.forge/.execute-tasks-active`
 sentinel, so it is inert during normal work. Tests: `node .claude/hooks/__tests__/run.mjs`.
 {% endif -%}

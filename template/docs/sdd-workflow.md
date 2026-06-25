@@ -8,14 +8,14 @@ familiar across tools.
 ```
 spec ──► plan ──► tasks ──► implement
  │        │         │            │
- │        │         │            └─ execute-tasks runs them (parallel, one PR)
+ │        │         │            └─ fg-execute-tasks runs them (parallel, one PR)
  │        │         └─ tasks/NNN-*.md   (independently implementable units)
  │        └─ plan.md                    (technical design, ADRs)
  └─ spec.md                             (what & why — no implementation)
 ```
 
 Use SDD when a change carries **real architectural decisions** or spans multiple PRs.
-For a focused 1-PR change, skip straight to the **plan** skill.
+For a focused 1-PR change, skip straight to the **fg-plan** skill.
 
 ## Stages
 
@@ -52,7 +52,7 @@ Each feature gets a directory. Artifacts are written in the project's human lang
 1. **`sdd/spec`** — interactive; grills you on scope, non-goals, acceptance.
 2. **`sdd/plan`** — turns the spec into a technical design; records decisions as ADRs.
 3. **`sdd/tasks`** — decomposes the plan into self-contained task files.
-4. **`execute-tasks`** — runs the task files (see `docs/` on parallelism); opens one
+4. **`fg-execute-tasks`** — runs the task files (see `docs/` on parallelism); opens one
    integration PR.
 5. **`sdd/review`** → **`sdd/fix-review`** — review round and remediation.
 6. **`sdd/verify`** — refuses any "done" without fresh verification evidence.

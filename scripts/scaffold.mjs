@@ -172,9 +172,7 @@ async function main() {
 
   const next = [
     `cd ${target}`,
-    ctx.task_runner === "just"
-      ? "edit the justfile, then: just sync-adapters"
-      : "wire the task commands, then: node tools/sync-adapters.mjs",
+    `run the fg-bootstrap skill in your agent — it interviews your stack, writes docs/adr/, and wires the ${ctx.task_file}`,
     'git init && git add -A && git commit -m "chore: scaffold from forge"',
   ];
 

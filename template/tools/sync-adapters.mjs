@@ -71,26 +71,25 @@ function main() {
   }
 
   // Rebuild the adapter directories we do generate (idempotent).
-  if (doClaude) { rmSync(CLAUDE, { recursive: true, force: true }); mkdirSync(CLAUDE, { recursive: true }); }
+  if (doClaude) {
+    rmSync(CLAUDE, { recursive: true, force: true });
+    mkdirSync(dirname(CLAUDE), { recursive: true });
+    // Mirror the ENTIRE skills tree verbatim — not just SKILL.md dirs — so shared,
+    // non-skill reference dirs (e.g. sdd/references/, used by sdd-spec/plan/tasks/review
+    // via ../references/) resolve identically in the adapter and in the source.
+    cpSync(SRC, CLAUDE, { recursive: true });
+  }
   if (doCopilot) { rmSync(GH, { recursive: true, force: true }); mkdirSync(GH, { recursive: true }); }
 
   const skillDirs = findSkillDirs(SRC);
-  let claudeCount = 0;
+  let claudeCount = doClaude ? skillDirs.length : 0;
   let ghCount = 0;
 
   for (const dir of skillDirs) {
     const rel = relative(SRC, dir);
     const { name, desc } = parseFrontmatter(join(dir, "SKILL.md"));
 
-    // 1. Verbatim copy into .claude/skills/<rel> (SKILL.md + references/).
-    if (doClaude) {
-      const dest = join(CLAUDE, rel);
-      mkdirSync(dirname(dest), { recursive: true });
-      cpSync(dir, dest, { recursive: true });
-      claudeCount++;
-    }
-
-    // 2. Redirect stub into .github/instructions/<name>.instructions.md.
+    // Redirect stub into .github/instructions/<name>.instructions.md.
     if (doCopilot) {
       const slug = name || rel.split(sep).join("-");
       const sourcePath = `.agents/skills/${rel.split(sep).join("/")}/SKILL.md`;
