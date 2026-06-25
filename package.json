@@ -1,6 +1,6 @@
 {
   "name": "@nuccig/create-forge",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Scaffold a portable, tool-agnostic AI-agent harness (AGENTS.md + Spec-Driven Development).",
   "type": "module",
   "bin": {
