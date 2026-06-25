@@ -1,8 +1,8 @@
 # Authoring skills
 
 A skill is a unit of reusable agent know-how. forge ships **workflow** skills
-(stack-agnostic) and a generator (`create-skill`) for **domain** skills (your
-stack's guardrails). This document is the by-hand reference; `create-skill`
+(stack-agnostic) and a generator (`create-domain-skill`) for **domain** skills (your
+stack's guardrails). This document is the by-hand reference; `create-domain-skill`
 automates it.
 
 ## Anatomy

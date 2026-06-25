@@ -107,3 +107,8 @@ rules, the full PR template, and the pre-PR checklist. Show the user the PR URL.
 Check whether the change affects `AGENTS.md`, a domain skill, or the README. **Do not
 auto-edit** — list what needs updating, describe the change, and wait for explicit
 approval.
+
+If the change introduced a **new domain** with no governing domain skill (Step 3 found no
+match for its files) and the pattern is recurring, propose running the
+**`fg-create-domain-skill`** skill — seeded by the ADRs/decisions this task settled. Propose,
+don't auto-run; the user decides (`fg-decision-making`).

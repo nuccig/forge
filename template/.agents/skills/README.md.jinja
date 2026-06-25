@@ -18,7 +18,7 @@ Markdown body) and optional `references/` loaded on demand. The `description` is
 | `fg-decision-making` | A choice the user should own — ask, don't assume. |
 | `fg-git-workflow` | Branch / commit / PR conventions — invoked by `fg-plan`, `fg-execute-tasks`, SDD. |
 | `fg-execute-tasks` | Several independent task files → parallel subagents, one PR. |
-| `fg-create-skill` | Authoring a new **domain** skill for your stack. |
+| `fg-create-domain-skill` | Authoring/updating a **domain** skill for your stack from its ADRs. |
 {% if include_sdd -%}
 | `sdd-spec` → `sdd-plan` → `sdd-tasks` → `sdd-implement` | The SDD pipeline (see `docs/sdd-workflow.md`). |
 | `sdd-review` / `sdd-fix-review` | Review round and remediation. |
@@ -29,7 +29,7 @@ Markdown body) and optional `references/` loaded on demand. The `description` is
 | `fg-pr-review` | Multi-dimension review of a pull request. |
 {% endif %}
 
-## Domain skills (yours, generated with `fg-create-skill`)
+## Domain skills (yours, generated with `fg-create-domain-skill`)
 
 Stack-specific guardrails live here too, once you author them. They trigger by path and
 should also be listed in the `AGENTS.md` domain table. None ship by default — the harness

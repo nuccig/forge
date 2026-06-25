@@ -67,7 +67,7 @@ All three checks (lint, typecheck, test) must pass before any commit — this mi
 {% if include_pr_review_ai -%}
 | Reviewing a pull request | the **fg-pr-review** skill |
 {% endif -%}
-| A recurring stack pattern worth enforcing | **fg-create-skill** — author a domain skill |
+| A recurring stack pattern worth enforcing | **fg-create-domain-skill** — author a domain skill from its ADRs |
 | A choice the user should own | the **fg-decision-making** skill — ask, don't assume |
 
 Skills live in `.agents/skills/` (source of truth). After editing one, regenerate the
@@ -113,9 +113,9 @@ conventions — invoke it whenever you branch, commit, or open a PR. In short:
 
 ### Domain skills
 When you add a stack-specific skill, declare its auto-trigger path here so every tool
-sees the mapping. (Use **fg-create-skill** — it wires the adapters and updates the catalog.)
+sees the mapping. (Use **fg-create-domain-skill** — it wires the adapters and updates the catalog.)
 
-<!-- DOMAIN-SKILLS:START — fg-create-skill maintains this table -->
+<!-- DOMAIN-SKILLS:START — fg-create-domain-skill maintains this table -->
 | Skill | Triggers on | Enforces |
 | --- | --- | --- |
 <!-- DOMAIN-SKILLS:END -->

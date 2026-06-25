@@ -10,6 +10,11 @@ merge); bump the version on changes that affect generated output.
 ## [Unreleased]
 
 ### Changed
+- Renamed the `create-skill` skill to **`fg-create-domain-skill`** and made it
+  decision-driven: it seeds (or updates) a domain skill from the project's ADRs rather than
+  authoring from scratch, closing a feedback loop *decision (ADR) → domain skill → enforced
+  by the flows → new decision → skill update*. The flows (`fg-plan`, `fg-execute-tasks`,
+  `sdd-plan`, `sdd-tasks`) now propose it when a new domain with no governing skill appears.
 - Replaced the Copier (Python) delivery with a **Node TUI scaffolder**
   (`npx create-forge` / `git clone && npm run setup`). Zero Python; the template still
   renders with Jinja-compatible syntax (Nunjucks). Trade-off: no automatic `copier
@@ -19,8 +24,8 @@ merge); bump the version on changes that affect generated output.
 - Initial harness extraction.
   - Canonical `AGENTS.md` contract + per-tool adapters (`.claude/`, `.github/`).
   - Task-runner seam (`justfile`) decoupling skills/CI from any stack.
-  - Curated skills: `plan`, `grill-me`, `execute-tasks`, `decision-making`,
-    `pr-review`, `create-skill`.
+  - Curated skills: `bootstrap`, `plan`, `grill-me`, `execute-tasks`, `decision-making`,
+    `pr-review`, `create-domain-skill`.
   - SDD pipeline (`sdd/`): `spec → plan → tasks → implement → review → fix-review
     → verify → memory`, vocabulary aligned to GitHub Spec Kit.
   - Optional Claude Code controller-write guard hook (Node, fail-open, tested).

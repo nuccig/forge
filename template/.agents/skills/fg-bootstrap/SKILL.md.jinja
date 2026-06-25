@@ -15,9 +15,10 @@ domain rules. This skill configures it for *this* project: it grills you on the
 foundational choices, records each as an ADR in `docs/adr/`, and wires the {{ task_file }}
 so the verify gate actually runs your stack.
 
-Run it **once, early**. The other flows — `fg-plan`, `sdd-plan`, `fg-create-skill` — read
-`docs/adr/` to ground their work, so the sharper this interview, the smarter every later
-flow. It replaces cramming stack questions into the scaffolder: install stays short, the
+Run it **once, early**. The other flows — `fg-plan`, `sdd-plan`, `fg-create-domain-skill` —
+read `docs/adr/` to ground their work, so the sharper this interview, the smarter every
+later flow. The ADRs you record here are also what later seed `fg-create-domain-skill` when
+a domain skill is authored. It replaces cramming stack questions into the scaffolder: install stays short, the
 real decisions happen here, in context, with you in the loop.
 
 ## Principles
@@ -44,7 +45,7 @@ real decisions happen here, in context, with you in the loop.
    - **Task commands** — the real `lint`, `typecheck`, `test`, `build`, and optional `e2e`
      commands for the stack, plus the globs that gate runtime / E2E checks (`runtime_paths`).
    - **Conventions worth enforcing** — naming, logging, error handling — anything a future
-     domain skill (`fg-create-skill`) should encode.
+     domain skill (`fg-create-domain-skill`) should encode.
 3. **Record each settled cluster as an ADR.** Write `docs/adr/NNNN-<decision-slug>.md`
    (numbered after the existing `0001`), using
    `docs/adr/0001-record-architecture-decisions.md` as the format — context, decision,

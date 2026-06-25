@@ -29,10 +29,15 @@ decision as an ADR.
    user (use `fg-decision-making`). Record the resolved choice — with the alternatives
    considered and the consequences — as an ADR using `../references/adr-template.md`.
 4. **Write `plan.md`** using `../references/plan-template.md`, linking each ADR.
+5. **Flag new-domain guardrails.** If the design introduces a domain that no existing skill
+   governs, propose authoring one with **`fg-create-domain-skill`**, seeded by the ADRs just
+   recorded — this is the entry point of the decision → skill feedback loop. Propose, don't
+   auto-run.
 
 ## Definition of done
 
 - Every component and contract in scope has a design.
 - Each non-obvious decision is an ADR (status `accepted`), linked from `plan.md`.
 - Risks and the verification approach are stated.
+- New domains with no governing skill are flagged for `fg-create-domain-skill`.
 - The user has confirmed before moving to the `sdd-tasks` stage.

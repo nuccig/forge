@@ -1,0 +1,81 @@
+---
+name: fg-create-domain-skill
+description: >
+  Authors or updates a domain skill from the project's recorded decisions — grills for the
+  trigger path and the mandatory pipeline, encodes the relevant ADRs as rules, scaffolds
+  (or updates) the SKILL.md in the canonical source, wires the adapters, and registers it.
+  Use when a new domain appears or a recorded decision changes how an area must be built.
+  Do not use to edit an existing skill's adapters by hand.
+---
+
+# Create / update a domain skill
+
+A domain skill captures *your stack's* guardrails (the harness ships only stack-agnostic
+workflow skills). It is the **enforcement surface for decisions the project already
+recorded** as ADRs — not a place to reinvent them. This skill generates one (or updates the
+existing one) correctly so it triggers, reads, and syncs like the built-ins.
+
+## Feedback loop
+
+This skill is one half of a cycle — keep it turning:
+
+```
+decision (ADR) → domain skill → enforced by the flows → new decision → skill update
+```
+
+`fg-bootstrap`, `sdd-plan`, and `fg-plan`'s grilling all record decisions as ADRs (see
+`fg-decision-making`). Those ADRs are this skill's **input**. The flows (`fg-plan`,
+`fg-execute-tasks`, `sdd-plan`, `sdd-tasks`) propose invoking this skill whenever a new
+domain appears or a decision lands that an existing skill doesn't yet encode.
+
+## Process
+
+1. **Create or update?** Check whether a domain skill already governs the target path
+   (match trigger paths in `.agents/skills/` and the `AGENTS.md` domain table).
+   - **Exists** → *update* it: fold the new decisions into its rules/anti-patterns. Never
+     scaffold a duplicate for the same domain.
+   - **None** → *create* a new one (steps below).
+
+2. **Seed from recorded decisions (primary input).** Read the ADRs that govern this domain —
+   `docs/adr/` for project-wide stack decisions, and in SDD context the feature's
+   `.forge/specs/<slug>/adr/`. Encode each relevant decision as a rule or an explicit
+   anti-pattern. A rule with no decision behind it is a smell — ground it or drop it.
+
+3. **Grill the rest** (one question at a time — lean on `fg-grill-me`):
+   - **Trigger.** Which paths should auto-load it? (e.g. `api/**`, `db/migrations/**`.)
+     The `description` is the trigger — it must be unambiguous about *when*.
+   - **Mandatory pipeline.** Is there a non-negotiable order? (e.g. `auth → validate →
+     logic`.) This leads the body.
+   - **Anti-patterns.** What must the skill forbid? List them as explicit "never" rules.
+   - **References.** Any templates or long checklists? Those go in `references/`, loaded
+     on demand.
+
+4. **Scaffold** `.agents/skills/<name>/SKILL.md` from
+   `references/domain-skill-template.md` (or edit the existing file when updating). Name in
+   kebab-case. Body in English; the skill talks to humans in the project language.
+   - **Reference tasks, never literal stack commands** — write `just test`, not `npm test`
+     — so the skill survives a stack swap.
+
+5. **Wire the adapters.** Run:
+
+   ```bash
+   {% if task_runner == "just" %}just sync-adapters{% else %}node tools/sync-adapters.mjs{% endif %}
+   ```
+
+   This generates `.claude/skills/<name>/` and `.github/instructions/<name>.instructions.md`.
+   **Never** hand-edit those — they are regenerated.
+
+6. **Register it.**
+   - Add a one-line entry to `.agents/skills/README.md` (the catalog).
+   - If it auto-triggers by path, add a row to the **Domain skills** table in `AGENTS.md`
+     (between the `DOMAIN-SKILLS:START/END` markers) so every tool sees the mapping.
+
+## Checklist
+
+- [ ] Checked for an existing skill on the path — updated it instead of duplicating.
+- [ ] Every rule traces back to a recorded decision (ADR); ungrounded rules dropped.
+- [ ] `description` makes the trigger unambiguous (and says what should NOT trigger it).
+- [ ] Pipeline / rules lead the body; anti-patterns are explicit "never" rules.
+- [ ] No stack/vendor names in command position — tasks and variables only.
+- [ ] Adapters regenerated via sync; not hand-edited.
+- [ ] Catalog and `AGENTS.md` domain table updated.

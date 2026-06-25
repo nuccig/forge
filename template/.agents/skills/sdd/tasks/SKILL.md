@@ -27,7 +27,9 @@ can run.
 3. **Declare disjoint file scope.** For each task, list the files it owns. Disjoint
    scopes are what let `fg-execute-tasks` run tasks in parallel.
 4. **Enrich.** Explore the codebase and add the concrete context each task needs:
-   patterns to follow, the domain skill that governs its files, acceptance checks.
+   patterns to follow, the domain skill that governs its files, acceptance checks. When a
+   task's files have **no** governing domain skill, flag the gap and recommend authoring one
+   with **`fg-create-domain-skill`** (seeded by the feature's ADRs) before or alongside it.
 5. **Write each task** using `../references/task-template.md`, numbered `001`, `002`, ….
 
 ## Definition of done

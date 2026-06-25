@@ -60,7 +60,7 @@ the plan workflow." It should answer from the file.
 | A feature with real decisions                 | the SDD pipeline: `spec → plan → tasks → implement` |
 | Generated tasks to run in parallel            | `execute-tasks`                                     |
 | A PR to review                                | `pr-review`                                         |
-| A recurring stack-specific pattern to enforce | `create-skill` to author a domain skill             |
+| A recurring stack-specific pattern to enforce | `create-domain-skill` to author a domain skill from its ADRs |
 
 ## 6. Commit
 

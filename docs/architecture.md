@@ -75,8 +75,10 @@ set serve a Python service and a TypeScript app.
 - **New tool surface** → add an adapter writer in `sync-adapters.mjs`. Source
   unchanged.
 - **New workflow skill** → add `.agents/skills/<name>/SKILL.md`, sync.
-- **New domain skill (per project)** → use the `create-skill` skill; it does the
-  above for you and grills you for trigger paths and the mandatory pipeline.
+- **New domain skill (per project)** → use the `create-domain-skill` skill; it does the
+  above for you, seeds the skill from the project's ADRs, and grills you for trigger paths
+  and the mandatory pipeline. The flows (`plan`, `execute-tasks`, `sdd-plan`, `sdd-tasks`)
+  propose it when a new domain appears.
 - **Stack change** → edit the `justfile`. Nothing else.
 
 The invariant to preserve: **nothing project-specific lives in `template/`**, and

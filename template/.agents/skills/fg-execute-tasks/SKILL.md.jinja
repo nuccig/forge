@@ -96,6 +96,9 @@ subagents write disjoint files (parallel, ≤ 4)
 {% endif -%}
 {% if include_pr_review_ai %}11{% else %}9{% endif %}. **PR ready.** With a clean review and verification PASS, flip the draft to ready
     following **`fg-git-workflow`** (drop `WIP:`, full template{% if issue_tracker != "none" %}, confirm each `Closes` line{% endif %}; note the draft→ready re-trigger caveat).
+    If any task introduced a **new domain** that no domain skill governs, flag it in the
+    final report and propose running **`fg-create-domain-skill`** (seeded by the run's ADRs) —
+    propose, don't auto-run.
 {% if include_pr_review_ai %}12{% else %}10{% endif %}. **Sentinel cleanup — always, on success or error.** Remove
     `.forge/.execute-tasks-active`, disarming restricted mode. If absent, continue
     without error.

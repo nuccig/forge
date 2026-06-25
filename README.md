@@ -53,11 +53,12 @@ works the same in any repo forge scaffolds.
 
 | Flow                               | Use it when                   | What makes it different                                                         | How it helps you ship                                           |
 | ---------------------------------- | ----------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **`bootstrap`**                    | A freshly scaffolded harness  | One-time stack interview → decisions recorded as ADRs + a wired task runner     | Every later flow reads those ADRs, so the whole harness gets smarter |
 | **`plan`**                         | One focused change (1 PR)     | Mandatory grilling *before* code; explore + design run as subagents             | Catches the wrong assumption in chat, not in review             |
 | **SDD pipeline** (`sdd/*`)         | A feature with real decisions | Each phase emits a Markdown artifact that feeds the next; decisions become ADRs | Turns a fuzzy ask into reviewable spec → plan → tasks; no drift |
 | **`execute-tasks`**                | Many tasks, one PR            | True parallelism over **disjoint files**, enforced by a guard hook              | Builds N tasks at once without merge chaos or lost tracking     |
 | **`pr-review`**                    | A PR to review                | 5 subagents review against *your* `AGENTS.md` + domain skills                   | Consistent, rule-aware review without a human bottleneck        |
-| **`create-skill`**                 | A pattern worth enforcing     | Generates a neutral skill + wires all adapters for you                          | Your codebase's rules become guardrails every agent obeys       |
+| **`create-domain-skill`**          | A new domain / pattern to enforce | Seeded from your recorded ADRs; the flows propose it when a new domain appears; updates an existing skill instead of duplicating | Your decisions become guardrails every agent obeys — and stay current |
 | **`grill-me` / `decision-making`** | Any ambiguous moment          | One question at a time; recommends an answer, defers the call to you            | Keeps the agent from silently guessing what you meant           |
 
 **Pick the scale explicitly** — the skills ask rather than assume. The two big
@@ -66,16 +67,29 @@ fit together:
 
 ```mermaid
 flowchart TD
-    A([Something to build]) --> B{What is it?}
+    BS[bootstrap<br/>once, records ADRs] --> A([Something to build])
+    A --> B{What is it?}
     B -->|Focused change, 1 PR| P[plan]
     B -->|Feature with decisions| S[SDD: spec, plan, tasks]
-    B -->|A rule worth enforcing| C[create-skill]
+    B -->|A new domain to enforce| C[create-domain-skill]
     S --> E[execute-tasks]
     P --> R[pr-review]
     E --> R
     R --> M([Merge])
     C -.->|makes rules for| R
+    ADR[(ADRs)] -.seed.-> C
+    C -.new decisions update.-> ADR
 ```
+
+### `bootstrap` — configure the harness once
+Run right after scaffolding, before any feature work. The scaffold ships deliberately bare —
+no stack, no commands, no domain rules — and `bootstrap` interviews you to fill that in.
+
+- **Differential:** it grills the foundational choices (runtime, app shape, data, deploy,
+  task commands) one at a time, records each as an **ADR** in `docs/adr/`, and wires the
+  task runner so the `verify` gate runs for real.
+- **Helps you:** every later flow (`plan`, `sdd-plan`, `create-domain-skill`) reads those
+  ADRs to ground its work — the sharper this interview, the smarter the whole harness.
 
 ### `plan` — the single-task flow
 A focused change (one PR, a handful of files):
@@ -147,15 +161,20 @@ requirements) that posts inline comments.
 - **Helps you:** every PR gets the same thorough, convention-aware pass, so review
   quality doesn't depend on who happens to be looking.
 
-### `create-skill` — grow the harness
-Interactively authors a new **domain** skill (e.g. "API route", "migration").
+### `create-domain-skill` — grow the harness from your decisions
+Authors (or updates) a **domain** skill (e.g. "API route", "migration") from the decisions
+the project already recorded.
 
-- **Differential:** it grills you for trigger paths and the mandatory pipeline,
-  scaffolds a neutral `SKILL.md`, and wires the Claude/Copilot adapters via sync — so a
-  generic forge project gains project-specific guardrails without you hand-editing three
-  directories.
+- **Differential:** it **seeds the skill from your ADRs** — the recorded decisions become
+  the rules and anti-patterns — then grills for trigger paths and the mandatory pipeline,
+  scaffolds a neutral `SKILL.md`, and wires the Claude/Copilot adapters via sync. If a skill
+  already governs the domain, it *updates* that one instead of duplicating.
+- **The feedback loop:** `decision (ADR) → domain skill → enforced by the flows → new
+  decision → skill update`. The flows (`plan`, `execute-tasks`, `sdd-plan`, `sdd-tasks`)
+  propose this skill the moment a new domain appears with no guardrails yet.
 - **Helps you:** the lessons you'd otherwise repeat in every review become automatic
-  context that every agent and every flow above respects.
+  context that every agent and every flow above respects — and stay in sync with your
+  decisions instead of drifting.
 
 ---
 
@@ -166,8 +185,8 @@ Interactively authors a new **domain** skill (e.g. "API route", "migration").
 | **`AGENTS.md` is canonical** | One file at the repo root is the agent contract. Everything else is generated from or points back to it.                                                                                                     |
 | **Adapters, not copies**     | `.claude/` and `.github/` are thin adapters. `.claude/CLAUDE.md` imports `AGENTS.md`; `.github/copilot-instructions.md` points at it. Skills live once in `.agents/skills/` and are **synced** to each tool. |
 | **Task-runner seam**         | Skills/CI invoke `just test`, not `npm test`. The `justfile` is the only place the real stack appears.                                                                                                       |
-| **Curated skills**           | A small, high-signal set: `plan`, `grill-me`, `execute-tasks`, `decision-making`, `pr-review`, `create-skill`, and the `sdd/*` pipeline.                                                                     |
-| **Generate, don't fork**     | `create-skill` scaffolds new **domain** skills for *your* stack; forge ships none, so there is nothing project-specific to delete.                                                                           |
+| **Curated skills**           | A small, high-signal set: `bootstrap`, `plan`, `grill-me`, `execute-tasks`, `decision-making`, `pr-review`, `create-domain-skill`, and the `sdd/*` pipeline.                                                  |
+| **Generate, don't fork**     | `create-domain-skill` scaffolds new **domain** skills for *your* stack from your ADRs; forge ships none, so there is nothing project-specific to delete.                                                      |
 | **Optional integrations**    | Issue tracker (Linear/GitHub) and git host are adapters chosen at scaffold time. Without them, skills degrade gracefully to local-only.                                                                      |
 
 ---
@@ -180,8 +199,8 @@ your-project/
 ├─ justfile               ← the ONLY place real stack commands live
 │
 ├─ .agents/skills/        ← SOURCE OF TRUTH for skills (tool-neutral)
-│   ├─ plan/  grill-me/  execute-tasks/  decision-making/
-│   ├─ create-skill/      ← generator for new domain skills
+│   ├─ bootstrap/  plan/  grill-me/  execute-tasks/  decision-making/
+│   ├─ create-domain-skill/   ← generator for new domain skills (seeded from ADRs)
 │   ├─ pr-review/
 │   └─ sdd/               ← spec → plan → tasks → implement → review → verify → memory
 │
@@ -347,9 +366,10 @@ source (`.agents/skills/`) never changes.
 
 ## How to evolve from the scaffold
 
-1. **Add domain guardrails** → run `create-skill`. It scaffolds a neutral skill and
-   syncs the adapters. Never hand-edit `.claude/skills/` or `.github/instructions/`
-   — they are generated.
+1. **Add domain guardrails** → run `create-domain-skill` (the flows also propose it when a
+   new domain appears). It seeds the skill from your ADRs, scaffolds a neutral skill, and
+   syncs the adapters. Never hand-edit `.claude/skills/` or `.github/instructions/` — they
+   are generated.
 2. **Change the stack** → edit the `justfile` recipes. Nothing else moves.
 3. **Improve the harness itself** → edit `.agents/skills/` and `template/`; new projects
    pick it up on their next `create-forge` run.
